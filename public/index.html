@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+
+        <link rel="stylesheet" href="./assets/css/reset.css"></link>
+        <link rel="stylesheet" href="./assets/css/style.css"></link>
+        <script type="text/javascript" src="./assets/js/jquery-3.7.1.min.js"></script>
+        <script type="text/javascript" src="./assets/js/wasm_exec.js"></script>
+        <script type="text/javascript" src="./assets/js/app/index.js"></script>
+        <!-- <script type="text/javascript">
+
+            $(document).ready(function(){
+                const go = new Go();
+                WebAssembly.instantiateStreaming(fetch("app.wasm"), go.importObject).then((result) => {
+                    go.run(result.instance);
+                });
+            });
+        </script> -->
+        <script type="text/javascript">
+
+            $(document).ready(function(){
+                app.main(document.getElementById("mainCanvas"));
+            });
+        </script>
+    </head>
+    <body><canvas id="mainCanvas"></canvas></body>
+</html>

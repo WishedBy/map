@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "outDir": "../public/assets/js/app",
+        "sourceMap": true,
+        "typeRoots": [
+          "./node_modules/@webgpu/types", 
+          "./node_modules/@types"
+        ],
+    }
+}
