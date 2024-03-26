@@ -7,13 +7,14 @@ export class MapMesh {
 
     maxSize = 50; 
     lastSize = 0; 
+    lastSpericalModifier = 0; 
 
     usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
 
     constructor(device: GPUDevice) {
         this.device = device
 
-        this.createVertices()
+        this.createVertices(1, 0)
 
         let stride = 6*4;
         let cOffset = 3*4;
@@ -39,11 +40,12 @@ export class MapMesh {
 
     }
 
-    createVertices(mod:number = 1){
+    createVertices(mod:number = 1, sphereMod: number = 0){
         let size = this.maxSize/mod;
-        if (this.lastSize == size){
+        if (this.lastSize == size && this.lastSpericalModifier == sphereMod){
             return
         }
+        this.lastSpericalModifier = sphereMod
         this.lastSize = size
         let halfpi = Math.PI/2;
         let tau = Math.PI*2;
@@ -52,20 +54,19 @@ export class MapMesh {
         // y - left-right
         // z - up-down
 
-        let xyz = (r: number, lon: number, lat: number): number[] => (
-            [
-                0,
-                lon,
-                lat,
+        let xyz = (r: number, lon: number, lat: number, mod: number = 0): number[] => {
+            let x = r*Math.cos(lat)*Math.cos(lon);
+            x = 0 + (mod*x);
+            let y = r*Math.cos(lat)*Math.sin(lon);
+            y = ((1-mod)*lon) + (mod*y);
+            let z = r*Math.sin(lat);
+            z = ((1-mod)*lat) + (mod*z);
+            return [ 
+                x,
+                y,
+                z,
             ]
-        );
-        // let xyz = (r: number, lon: number, lat: number): number[] => (
-        //     [
-        //         r*Math.cos(lat)*Math.cos(lon),
-        //         r*Math.cos(lat)*Math.sin(lon),
-        //         r*Math.sin(lat),
-        //     ]
-        // );
+        };
 
         let r = 1;
         let stepLat = Math.PI/size;
@@ -78,14 +79,14 @@ export class MapMesh {
                 let nextlon = ((j+1)*stepLon)-Math.PI;
                 // x y z r g b
                 // top left triangle
-                listVert.push(...xyz(r, lon, lat), i%2, 0, 0);
-                listVert.push(...xyz(r, nextlon, lat), i%2, 0, 0);
-                listVert.push(...xyz(r, lon, nextlat), i%2, 0, 0);
+                listVert.push(...xyz(r, lon, lat, sphereMod), i%2, 0, 0);
+                listVert.push(...xyz(r, nextlon, lat, sphereMod), i%2, 0, 0);
+                listVert.push(...xyz(r, lon, nextlat, sphereMod), i%2, 0, 0);
 
                 // bottom right triangle
-                listVert.push(...xyz(r, lon, nextlat), i%2, 0, 1);
-                listVert.push(...xyz(r, nextlon, lat), i%2, 0, 1);
-                listVert.push(...xyz(r, nextlon, nextlat), i%2, 0, 1);
+                listVert.push(...xyz(r, lon, nextlat, sphereMod), i%2, 0, 1);
+                listVert.push(...xyz(r, nextlon, lat, sphereMod), i%2, 0, 1);
+                listVert.push(...xyz(r, nextlon, nextlat, sphereMod), i%2, 0, 1);
 
 
             }
@@ -112,6 +113,7 @@ export class MapMesh {
             mappedAtCreation: true // similar to HOST_VISIBLE, allows buffer to be written by the CPU
         };
         this.buffer = this.device.createBuffer(descriptor);
+        
         //Buffer has been created, now load in the vertices
         new Float32Array(this.buffer.getMappedRange()).set(vertices);
         this.buffer.unmap();

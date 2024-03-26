@@ -184,7 +184,16 @@ export class Renderer {
         if (this.t > 2.0 * Math.PI) {
             this.t -= 2.0 * Math.PI;
         }
-        
+        let sphereT = this.t*2;
+        if (sphereT > 2.0 * Math.PI) {
+            sphereT -= 2.0 * Math.PI;
+        }
+        let dir = sphereT > Math.PI ? 1 : 0; 
+        let sphereMod = (sphereT-(dir*Math.PI))/(Math.PI);
+        if(dir == 1){
+            sphereMod = 1 - sphereMod;
+        }
+        this.mapMesh.createVertices(1, sphereMod)
 
         //make transforms
         const projection = mat4.create();
