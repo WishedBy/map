@@ -201,7 +201,6 @@ export class Renderer {
 
         const model = mat4.create();
         //Store, in the model matrix, the model matrix after rotating it by t radians around the z axis.
-        //(yeah, I know, kinda weird.)
         mat4.rotate(model, model, this.t, [0,0,1]);
         
 

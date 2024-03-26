@@ -48,34 +48,34 @@ export class MapMesh {
         let halfpi = Math.PI/2;
         let tau = Math.PI*2;
         let listVert: number[] = [];
+        // x - front-back
+        // y - left-right
+        // z - up-down
 
-        // let xyz = (r: number, lon: number, lat: number): number[] => (
-        //     [
-        //         0,
-        //         lon,
-        //         lat,
-        //     ]
-        // );
         let xyz = (r: number, lon: number, lat: number): number[] => (
             [
-                r*Math.sin(lat)*Math.cos(lon),
-                r*Math.sin(lat)*Math.sin(lon),
-                r*Math.cos(lat),
+                0,
+                lon,
+                lat,
             ]
         );
+        // let xyz = (r: number, lon: number, lat: number): number[] => (
+        //     [
+        //         r*Math.cos(lat)*Math.cos(lon),
+        //         r*Math.cos(lat)*Math.sin(lon),
+        //         r*Math.sin(lat),
+        //     ]
+        // );
 
         let r = 1;
         let stepLat = Math.PI/size;
         let stepLon = stepLat*2;
         for(let i = 0; i < size; i++){
-            let lat = (i*stepLat)//-halfpi;
-            let nextlat = ((i+1)*stepLat)//-halfpi;
+            let lat = (i*stepLat)-halfpi;
+            let nextlat = ((i+1)*stepLat)-halfpi;
             for(let j = 0; j < size; j++){
-                let lon = (j*stepLon)//-Math.PI;
-                let nextlon = ((j+1)*stepLon)//-Math.PI;
-                // x - front-back
-                // y - left-right
-                // z - up-down
+                let lon = (j*stepLon)-Math.PI;
+                let nextlon = ((j+1)*stepLon)-Math.PI;
                 // x y z r g b
                 // top left triangle
                 listVert.push(...xyz(r, lon, lat), i%2, 0, 0);
