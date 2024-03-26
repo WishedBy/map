@@ -5,7 +5,7 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 16; 
+    maxSize = 50; 
     lastSize = 0; 
 
     usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
@@ -67,13 +67,9 @@ export class MapMesh {
         let r = 1;
         let stepLat = Math.PI/size;
         let stepLon = stepLat*2;
-        let minLat = 999;
-        let maxLat = -999;
         for(let i = 0; i < size; i++){
             let lat = (i*stepLat)//-halfpi;
             let nextlat = ((i+1)*stepLat)//-halfpi;
-            minLat = Math.min(minLat, lat);
-            maxLat = Math.max(maxLat, lat);
             for(let j = 0; j < size; j++){
                 let lon = (j*stepLon)//-Math.PI;
                 let nextlon = ((j+1)*stepLon)//-Math.PI;
@@ -94,7 +90,6 @@ export class MapMesh {
 
             }
         }
-        console.log(minLat, maxLat)
         this.verticeNo = listVert.length/6
         // x - front-back
         // y - left-right
