@@ -1,9 +1,10 @@
 // import triangle from "./shaders/triangle.wgsl";
-import map from "./shaders/map.wgsl";
+import map from "./map/shaders/map.wgsl";
 import { mat4 } from "gl-matrix";
 // import { TriangleMesh } from "./triangleMesh";
-import { MapMesh } from "./mapMesh";
+import { MapMesh } from "./map/mapMesh";
 import $ from "jquery";
+import { Material } from "./material";
 
 export class Renderer {
 
@@ -22,6 +23,7 @@ export class Renderer {
 
     // Assets
     mapMesh!: MapMesh;
+    mapMaterial!: Material;
 
     //a little dodgy but let's do this for not
     t: number = 0.0;
@@ -47,7 +49,7 @@ export class Renderer {
         })
 
         await this.setupDevice();
-        this.createAssets();
+        await this.createAssets();
         await this.makeDepthBufferResources();
         await this.makePipeline();
         
@@ -75,7 +77,7 @@ export class Renderer {
     async makePipeline() {
 
         this.uniformBuffer = this.device.createBuffer({
-            size: 64 * 3,
+            size: (64 * 3)+4+12,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
 
@@ -85,7 +87,17 @@ export class Renderer {
                     binding: 0,
                     visibility: GPUShaderStage.VERTEX,
                     buffer: {}
-                }
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {}
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {}
+                },
             ]
 
         });
@@ -98,6 +110,14 @@ export class Renderer {
                     resource: {
                         buffer: this.uniformBuffer
                     }
+                },
+                {
+                    binding: 1,
+                    resource: this.mapMaterial.view
+                },
+                {
+                    binding: 2,
+                    resource: this.mapMaterial.sampler
                 }
             ]
         });
@@ -174,7 +194,10 @@ export class Renderer {
 
     }
 
-    createAssets() {
+    async createAssets() {
+        
+        this.mapMaterial = await Material.create(this.device, "assets/img/world-vivid.jpg");
+
         this.mapMesh = new MapMesh(this.device);
     }
 
@@ -193,7 +216,7 @@ export class Renderer {
         if(dir == 1){
             sphereMod = 1 - sphereMod;
         }
-        this.mapMesh.createVertices(1, sphereMod)
+        this.mapMesh.createVertices(1)
 
         //make transforms
         const projection = mat4.create();
@@ -216,6 +239,7 @@ export class Renderer {
         this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>model); 
         this.device.queue.writeBuffer(this.uniformBuffer, 64, <ArrayBuffer>view); 
         this.device.queue.writeBuffer(this.uniformBuffer, 128, <ArrayBuffer>projection); 
+        this.device.queue.writeBuffer(this.uniformBuffer, 192, new Float32Array([sphereMod, 1])); 
 
         //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();

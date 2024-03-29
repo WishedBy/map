@@ -1,3 +1,5 @@
+import { Material } from "../material";
+
 export class MapMesh {
 
     device: GPUDevice
@@ -5,22 +7,21 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 50; 
+    maxSize = 500; 
     lastSize = 0; 
-    lastSpericalModifier = 0; 
 
     usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
 
     constructor(device: GPUDevice) {
         this.device = device
 
-        this.createVertices(1, 0)
+        this.createVertices(1)
 
-        let stride = 6*4;
-        let cOffset = 3*4;
+        let stride = 5*4;
+        let tOffset = 3*4;
 
 
-
+ 
         //now define the buffer layout
         this.bufferLayout = {
             arrayStride: stride,
@@ -32,20 +33,19 @@ export class MapMesh {
                 },
                 {
                     shaderLocation: 1,
-                    format: "float32x3" as const,
-                    offset: cOffset
-                }
+                    format: "float32x2" as const,
+                    offset: tOffset
+                },
             ]
         }
 
     }
 
-    createVertices(mod:number = 1, sphereMod: number = 0){
+    createVertices(mod:number = 1){
         let size = this.maxSize/mod;
-        if (this.lastSize == size && this.lastSpericalModifier == sphereMod){
+        if (this.lastSize == size){
             return
         }
-        this.lastSpericalModifier = sphereMod
         this.lastSize = size
         let halfpi = Math.PI/2;
         let tau = Math.PI*2;
@@ -54,19 +54,12 @@ export class MapMesh {
         // y - left-right
         // z - up-down
 
-        let xyz = (r: number, lon: number, lat: number, mod: number = 0): number[] => {
-            let x = r*Math.cos(lat)*Math.cos(lon);
-            x = 0 + (mod*x);
-            let y = r*Math.cos(lat)*Math.sin(lon);
-            y = ((1-mod)*lon) + (mod*y);
-            let z = r*Math.sin(lat);
-            z = ((1-mod)*lat) + (mod*z);
-            return [ 
-                x,
-                y,
-                z,
-            ]
-        };
+        let uv = (lat: number, lon: number): number[] => {
+            let u: number = (lon+Math.PI)/tau
+            let v: number = (lat+halfpi)/Math.PI
+            
+            return [u, v]
+        }
 
         let r = 1;
         let stepLat = Math.PI/size;
@@ -78,33 +71,34 @@ export class MapMesh {
                 let lon = (j*stepLon)-Math.PI;
                 let nextlon = ((j+1)*stepLon)-Math.PI;
                 // x y z r g b
-                // top left triangle
-                listVert.push(...xyz(r, lon, lat, sphereMod), i%2, 0, 0);
-                listVert.push(...xyz(r, nextlon, lat, sphereMod), i%2, 0, 0);
-                listVert.push(...xyz(r, lon, nextlat, sphereMod), i%2, 0, 0);
+                // // top left triangle
+                // listVert.push(...xyz(r, lon, lat, sphereMod), ...uv(lat, lon));
+                // listVert.push(...xyz(r, nextlon, lat, sphereMod), ...uv(lat, lon));
+                // listVert.push(...xyz(r, lon, nextlat, sphereMod), ...uv(lat, lon));
+
+                // // bottom right triangle
+                // listVert.push(...xyz(r, lon, nextlat, sphereMod), ...uv(lat, lon));
+                // listVert.push(...xyz(r, nextlon, lat, sphereMod), ...uv(lat, lon));
+                // listVert.push(...xyz(r, nextlon, nextlat, sphereMod), ...uv(lat, lon));
+
+
+                listVert.push(0, lon, lat, ...uv(lat, lon));
+                listVert.push(0, nextlon, lat, ...uv(lat, lon));
+                listVert.push(0, lon, nextlat, ...uv(lat, lon));
 
                 // bottom right triangle
-                listVert.push(...xyz(r, lon, nextlat, sphereMod), i%2, 0, 1);
-                listVert.push(...xyz(r, nextlon, lat, sphereMod), i%2, 0, 1);
-                listVert.push(...xyz(r, nextlon, nextlat, sphereMod), i%2, 0, 1);
+                listVert.push(0, lon, nextlat, ...uv(lat, lon));
+                listVert.push(0, nextlon, lat, ...uv(lat, lon));
+                listVert.push(0, nextlon, nextlat, ...uv(lat, lon));
 
 
             }
         }
-        this.verticeNo = listVert.length/6
+        this.verticeNo = listVert.length/5
         // x - front-back
         // y - left-right
         // z - up-down
-            // x y z r g b
-        // [
-            // 0, -0.5, -0.5, 1.0, 0.0, 0.0,
-            // 0, 0.5,  -0.5, 0.0, 1.0, 0.0,
-            // 0, -0.5,  0.5, 0.0, 0.0, 0.0,
-
-            // 0, -0.5, 0.5, 1.0, 0.0, 0.0,
-            // 0, 0.5, -0.5, 0.0, 1.0, 0.0,
-            // 0, 0.5,  0.5, 0.0, 0.0, 1.0,
-        // ]
+        // x y z u v r g b
         const vertices: Float32Array = new Float32Array(listVert);
 
         const descriptor: GPUBufferDescriptor = {
