@@ -50,9 +50,6 @@ export class MapMesh {
         let halfpi = Math.PI/2;
         let tau = Math.PI*2;
         let listVert: number[] = [];
-        // x - front-back
-        // y - left-right
-        // z - up-down
 
         let uv = (lat: number, lon: number): number[] => {
             let u: number = (lon+Math.PI)/tau

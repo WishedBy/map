@@ -43,15 +43,16 @@ export class Renderer {
     async Initialize() {
         this.canvas.width = window.innerWidth
         this.canvas.height = window.innerHeight
-        $(window).on("resize", () => {
-            this.canvas.width = window.innerWidth
-            this.canvas.height = window.innerHeight
-        })
 
         await this.setupDevice();
         await this.createAssets();
         await this.makeDepthBufferResources();
         await this.makePipeline();
+        $(window).on("resize", async () => {
+            this.canvas.width = Math.max(1, Math.min(window.innerWidth, this.device.limits.maxTextureDimension2D));
+            this.canvas.height = Math.max(1, Math.min(window.innerHeight, this.device.limits.maxTextureDimension2D));
+            await this.makeDepthBufferResources();
+        })
         
     }
 
@@ -216,6 +217,7 @@ export class Renderer {
         if(dir == 1){
             sphereMod = 1 - sphereMod;
         }
+        // sphereMod = 0.1
         this.mapMesh.createVertices(1)
 
         //make transforms
@@ -223,7 +225,7 @@ export class Renderer {
         // load perspective projection into the projection matrix,
         // Field of view = 45 degrees (pi/4)
         // near = 0.1, far = 10 
-        mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, 10);
+        mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, 100);
         const view = mat4.create();
         //load lookat matrix into the view matrix,
         //looking from [-2, 0, 2]
@@ -245,6 +247,8 @@ export class Renderer {
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
         //texture view: image view to the color buffer in this case
         const textureView : GPUTextureView = this.context.getCurrentTexture().createView();
+
+        
         //renderpass: holds draw commands, allocated from command encoder
         const renderpass : GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
