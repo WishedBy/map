@@ -18,24 +18,28 @@ struct Fragment {
 fn vs_main(@location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
     var m = transformer.animationMod;
     var r = transformer.r;
-    // r += rmod;
+    var m1 = 0.0;
+    var m2 = 0.0;
+    var phase = 0.0;
+    if(m <= 0.5){
+        m1 = (m*2);
+    }else{
+        m1 = 1;
+        m2 = (m*2)-1;
+    }
     
     var lon = vertexPostion[1];
     var lat = vertexPostion[2];
-    // z = up down
-    var x = r*cos(lat)*cos(lon);
-    var y = r*cos(lat)*sin(lon);
-    var z = r*sin(lat);
 
     // test cylinder
-    z = lat;
-    x = r*cos(lon);
-    y = r*sin(lon);
-    // so when splitting the animation in half, first do the cilinder, then keeping that value, and addition for y*sin(lon) and z*sin(lat)? i think?
+    var x = r*cos(lon)*m1*(1-m2) + r*cos(lat)*cos(lon)*m2;
+    var y = r*sin(lon)*m1*(1-m2) + r*cos(lat)*sin(lon)*m2;
+    var z = (1-m2)*lat + r*sin(lat)*m2;
     
-    x = m*x;
-    y = ((1-m)*lon) + (m*y);
-    z = ((1-m)*lat) + (m*z);
+    
+    x *= m;
+    y = ((1-m2)*lon) + (m2*y);
+    // z = ((1-m)*lat) + (m*z);
 
 
     var pos = transformer.model * vec4<f32>(x, y, z, 1.0); // after rotation

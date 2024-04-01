@@ -204,13 +204,13 @@ export class Renderer {
 
     render = () => {
         
-        this.t += 0.01;
-        if (this.t > 2.0 * Math.PI) {
-            this.t -= 2.0 * Math.PI;
+        this.t += 0.001;
+        if (this.t > 1) {
+            this.t -= 1;
         }
-        let sphereT = this.t*2;
-        if (sphereT > 2.0 * Math.PI) {
-            sphereT -= 2.0 * Math.PI;
+        let sphereT = this.t*4*Math.PI;
+        if(sphereT>2*Math.PI){
+            sphereT -= 2*Math.PI;
         }
         let dir = sphereT > Math.PI ? 1 : 0; 
         let sphereMod = (sphereT-(dir*Math.PI))/(Math.PI);
@@ -235,7 +235,7 @@ export class Renderer {
 
         const model = mat4.create();
         //Store, in the model matrix, the model matrix after rotating it by t radians around the z axis.
-        mat4.rotate(model, model, this.t, [0,0,1]);
+        mat4.rotate(model, model, this.t*2*Math.PI, [0,0,1]);
         
 
         this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>model); 
