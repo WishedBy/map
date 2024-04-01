@@ -1,8 +1,7 @@
-import { Material } from "../material";
+
 
 export class MapMesh {
 
-    device: GPUDevice
     buffer!: GPUBuffer
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
@@ -12,10 +11,8 @@ export class MapMesh {
 
     usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
 
-    constructor(device: GPUDevice) {
-        this.device = device
+    constructor() {
 
-        this.createVertices(1)
 
         let stride = 5*4;
         let tOffset = 3*4;
@@ -41,7 +38,7 @@ export class MapMesh {
 
     }
 
-    createVertices(mod:number = 1){
+    getVertices(mod:number = 1, device: GPUDevice){
         let size = this.maxSize/mod;
         if (this.lastSize == size){
             return
@@ -67,16 +64,6 @@ export class MapMesh {
             for(let j = 0; j < size; j++){
                 let lon = (j*stepLon)-Math.PI;
                 let nextlon = ((j+1)*stepLon)-Math.PI;
-                // x y z r g b
-                // // top left triangle
-                // listVert.push(...xyz(r, lon, lat, sphereMod), ...uv(lat, lon));
-                // listVert.push(...xyz(r, nextlon, lat, sphereMod), ...uv(lat, lon));
-                // listVert.push(...xyz(r, lon, nextlat, sphereMod), ...uv(lat, lon));
-
-                // // bottom right triangle
-                // listVert.push(...xyz(r, lon, nextlat, sphereMod), ...uv(lat, lon));
-                // listVert.push(...xyz(r, nextlon, lat, sphereMod), ...uv(lat, lon));
-                // listVert.push(...xyz(r, nextlon, nextlat, sphereMod), ...uv(lat, lon));
 
 
                 listVert.push(0, lon, lat, ...uv(lat, lon));
@@ -92,10 +79,6 @@ export class MapMesh {
             }
         }
         this.verticeNo = listVert.length/5
-        // x - front-back
-        // y - left-right
-        // z - up-down
-        // x y z u v r g b
         const vertices: Float32Array = new Float32Array(listVert);
 
         const descriptor: GPUBufferDescriptor = {
@@ -103,7 +86,7 @@ export class MapMesh {
             usage: this.usage,
             mappedAtCreation: true // similar to HOST_VISIBLE, allows buffer to be written by the CPU
         };
-        this.buffer = this.device.createBuffer(descriptor);
+        this.buffer = device.createBuffer(descriptor);
         
         //Buffer has been created, now load in the vertices
         new Float32Array(this.buffer.getMappedRange()).set(vertices);

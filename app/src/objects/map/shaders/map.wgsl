@@ -3,7 +3,6 @@ struct TransformData {
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
     animationMod: f32,
-    r: f32,
 };
 @binding(0) @group(0) var<uniform> transformer: TransformData;
 @binding(1) @group(0) var myTexture: texture_2d<f32>;
@@ -17,17 +16,15 @@ struct Fragment {
 @vertex
 fn vs_main(@location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
     var m = transformer.animationMod;
-    var r = transformer.r;
+    var r = 1.0;
     var m1 = 0.0;
     var m2 = 0.0;
-    var phase = 0.0;
     if(m <= 0.5){
         m1 = (m*2);
     }else{
         m1 = 1;
         m2 = (m*2)-1;
     }
-    
     var lon = vertexPostion[1];
     var lat = vertexPostion[2];
 
@@ -37,9 +34,8 @@ fn vs_main(@location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: v
     var z = (1-m2)*lat + r*sin(lat)*m2;
     
     
-    x *= m;
-    y = ((1-m2)*lon) + (m2*y);
-    // z = ((1-m)*lat) + (m*z);
+    x *= m1;
+    y = ((1-m1)*lon) + (m1*y);
 
 
     var pos = transformer.model * vec4<f32>(x, y, z, 1.0); // after rotation

@@ -1,10 +1,9 @@
-// import triangle from "./shaders/triangle.wgsl";
-import map from "./map/shaders/map.wgsl";
+
+import map from "./objects/map/shaders/map.wgsl";
 import { mat4 } from "gl-matrix";
-// import { TriangleMesh } from "./triangleMesh";
-import { MapMesh } from "./map/mapMesh";
+import { MapMesh } from "./objects/map/mesh";
 import $ from "jquery";
-import { Material } from "./material";
+import { Material } from "./objects/material";
 
 export class Renderer {
 
@@ -199,7 +198,7 @@ export class Renderer {
         
         this.mapMaterial = await Material.create(this.device, "assets/img/world-vivid.jpg");
 
-        this.mapMesh = new MapMesh(this.device);
+        this.mapMesh = new MapMesh();
     }
 
     render = () => {
@@ -208,17 +207,14 @@ export class Renderer {
         if (this.t > 1) {
             this.t -= 1;
         }
-        let sphereT = this.t*4*Math.PI;
-        if(sphereT>2*Math.PI){
-            sphereT -= 2*Math.PI;
-        }
-        let dir = sphereT > Math.PI ? 1 : 0; 
-        let sphereMod = (sphereT-(dir*Math.PI))/(Math.PI);
+        let sphereT = this.t*2;
+        let dir = sphereT > 1 ? 1 : 0; 
+        let sphereMod = (sphereT-dir);
         if(dir == 1){
             sphereMod = 1 - sphereMod;
         }
         // sphereMod = 0.1
-        this.mapMesh.createVertices(1)
+        this.mapMesh.getVertices(1,this.device)
 
         //make transforms
         const projection = mat4.create();
@@ -241,7 +237,7 @@ export class Renderer {
         this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>model); 
         this.device.queue.writeBuffer(this.uniformBuffer, 64, <ArrayBuffer>view); 
         this.device.queue.writeBuffer(this.uniformBuffer, 128, <ArrayBuffer>projection); 
-        this.device.queue.writeBuffer(this.uniformBuffer, 192, new Float32Array([sphereMod, 1])); 
+        this.device.queue.writeBuffer(this.uniformBuffer, 192, new Float32Array([sphereMod])); 
 
         //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
@@ -253,7 +249,7 @@ export class Renderer {
         const renderpass : GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                clearValue: {r: 0.5, g: 0.0, b: 0.25, a: 1.0},
+                clearValue: {r: 0, g: 0.0, b: 0, a: 1.0},
                 loadOp: "clear" as const,
                 storeOp: "store" as const
             }],
