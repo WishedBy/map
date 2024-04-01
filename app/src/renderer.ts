@@ -4,18 +4,20 @@ import { mat4 } from "gl-matrix";
 import { MapMesh } from "./objects/map/mesh";
 import $ from "jquery";
 import { Material } from "./objects/material";
+import { scene } from "./scene/scene";
 
 export class Renderer {
 
     canvas: HTMLCanvasElement;
+    scene: scene
 
     // Device/Context objects
-    adapter!: GPUAdapter;
-    device!: GPUDevice;
+    device: GPUDevice;
     context!: GPUCanvasContext;
     format!: GPUTextureFormat;
 
     // Pipeline objects
+    globalBuffer!: GPUBuffer;
     uniformBuffer!: GPUBuffer;
     bindGroup!: GPUBindGroup;
     pipeline!: GPURenderPipeline;
@@ -34,35 +36,37 @@ export class Renderer {
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
 
 
-    constructor(canvas: HTMLCanvasElement){
+    constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer) => scene){
         this.canvas = canvas;
+        this.device = device;
         this.t = 0.0; 
-    }
 
-    async Initialize() {
+        this.globalBuffer = this.device.createBuffer({
+            size: (64 * 2),
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+        });
+        
+        this.scene = sceneBuilder(this.globalBuffer);
         this.canvas.width = window.innerWidth
         this.canvas.height = window.innerHeight
-
-        await this.setupDevice();
-        await this.createAssets();
-        await this.makeDepthBufferResources();
-        await this.makePipeline();
         $(window).on("resize", async () => {
             this.canvas.width = Math.max(1, Math.min(window.innerWidth, this.device.limits.maxTextureDimension2D));
             this.canvas.height = Math.max(1, Math.min(window.innerHeight, this.device.limits.maxTextureDimension2D));
             await this.makeDepthBufferResources();
         })
+    }
+
+    async Initialize() {
+
+        await this.setupDevice();
+        await this.createAssets();
+        await this.makeDepthBufferResources();
+        await this.makePipeline();
         
     }
 
     async setupDevice() {
 
-        //adapter: wrapper around (physical) GPU.
-        //Describes features and limits
-        this.adapter = <GPUAdapter> await navigator.gpu?.requestAdapter();
-        //device: wrapper around GPU functionality
-        //Function calls are made through the device
-        this.device = <GPUDevice> await this.adapter?.requestDevice();
         //context: similar to vulkan instance (or OpenGL context)
         this.context = <GPUCanvasContext> this.canvas.getContext("webgpu");
         this.format = "bgra8unorm";
@@ -222,22 +226,16 @@ export class Renderer {
         // Field of view = 45 degrees (pi/4)
         // near = 0.1, far = 10 
         mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, 100);
-        const view = mat4.create();
-        //load lookat matrix into the view matrix,
-        //looking from [-2, 0, 2]
-        //looking at [0, 0, 0]
-        //up vector is [0, 0, 1]
-        mat4.lookAt(view, [-5, 0, 0], [0, 0, 0], [0, 0, 1]);
 
-        const model = mat4.create();
-        //Store, in the model matrix, the model matrix after rotating it by t radians around the z axis.
-        mat4.rotate(model, model, this.t*2*Math.PI, [0,0,1]);
+        const view = this.scene.getObserver().getView()
+
         
+ 
+        this.device.queue.writeBuffer(this.globalBuffer, 0, <ArrayBuffer>view); 
+        this.device.queue.writeBuffer(this.globalBuffer, 64, <ArrayBuffer>projection); 
 
-        this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>model); 
-        this.device.queue.writeBuffer(this.uniformBuffer, 64, <ArrayBuffer>view); 
-        this.device.queue.writeBuffer(this.uniformBuffer, 128, <ArrayBuffer>projection); 
-        this.device.queue.writeBuffer(this.uniformBuffer, 192, new Float32Array([sphereMod])); 
+        this.scene.update()
+        var renderData = this.scene.getRenderData()
 
         //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();

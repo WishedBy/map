@@ -1,12 +1,22 @@
 struct TransformData {
-    model: mat4x4<f32>,
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
+};
+
+struct model {
+    model: mat4x4<f32>,
     animationMod: f32,
 };
+
+struct ObjectData {
+    models: array<model>,
+};
+
 @binding(0) @group(0) var<uniform> transformer: TransformData;
 @binding(1) @group(0) var myTexture: texture_2d<f32>;
 @binding(2) @group(0) var mySampler: sampler;
+
+@binding(3) @group(0) var<storage, read> objects: ObjectData;
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
@@ -14,8 +24,8 @@ struct Fragment {
 };
 
 @vertex
-fn vs_main(@location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
-    var m = transformer.animationMod;
+fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
+    var m = objects.model[ID].animationMod;
     var r = 1.0;
     var m1 = 0.0;
     var m2 = 0.0;
@@ -38,7 +48,7 @@ fn vs_main(@location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: v
     y = ((1-m1)*lon) + (m1*y);
 
 
-    var pos = transformer.model * vec4<f32>(x, y, z, 1.0); // after rotation
+    var pos = objects.model[ID].model * vec4<f32>(x, y, z, 1.0); // after rotation
 
     var output : Fragment;
     output.Position = transformer.projection * transformer.view * pos;

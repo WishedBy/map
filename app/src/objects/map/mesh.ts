@@ -38,10 +38,10 @@ export class MapMesh {
 
     }
 
-    getVertices(mod:number = 1, device: GPUDevice){
+    getVertices(mod:number = 1, device: GPUDevice): GPUBuffer{
         let size = this.maxSize/mod;
         if (this.lastSize == size){
-            return
+            return this.buffer
         }
         this.lastSize = size
         let halfpi = Math.PI/2;
@@ -91,6 +91,6 @@ export class MapMesh {
         //Buffer has been created, now load in the vertices
         new Float32Array(this.buffer.getMappedRange()).set(vertices);
         this.buffer.unmap();
-
+        return this.buffer
     }
 }
