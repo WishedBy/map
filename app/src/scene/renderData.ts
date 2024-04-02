@@ -4,10 +4,12 @@ import { objectConfig } from "../objects/objectConfig"
 export type RenderGroup = {
     config: objectConfig
     count: Number
+    bufferLayout: GPUVertexBufferLayout
+    buffer: GPUBuffer
+    data: Float32Array
 }
 
 export type RenderData = {
     viewTransform: mat4
-    data: Float32Array
     groups: RenderGroup[]
 }

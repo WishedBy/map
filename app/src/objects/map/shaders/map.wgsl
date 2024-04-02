@@ -25,7 +25,7 @@ struct Fragment {
 
 @vertex
 fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
-    var m = objects.model[ID].animationMod;
+    var m = objects.models[ID].animationMod;
     var r = 1.0;
     var m1 = 0.0;
     var m2 = 0.0;
@@ -48,7 +48,7 @@ fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f3
     y = ((1-m1)*lon) + (m1*y);
 
 
-    var pos = objects.model[ID].model * vec4<f32>(x, y, z, 1.0); // after rotation
+    var pos = objects.models[ID].model * vec4<f32>(x, y, z, 1.0); // after rotation
 
     var output : Fragment;
     output.Position = transformer.projection * transformer.view * pos;

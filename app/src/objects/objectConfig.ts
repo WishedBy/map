@@ -2,7 +2,9 @@
 
 export type objectConfig = {
     shader: string
-    bindGroups: GPUBindGroup[]
-    getVerticies(): GPUBuffer
+    getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup
+    pipeline: GPURenderPipeline
+    getVerticies(subModelBuffer: GPUBuffer): GPUBuffer
+    getVerticeNo(): number
 
 }

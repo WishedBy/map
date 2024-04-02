@@ -13,15 +13,13 @@ type mapOpts = {
 }
 
 export class MapScene implements scene {
+    device: GPUDevice
     mapOpts: mapOpts
     maps: MapModel[];
     observer: Camera;
-    triangle_count: number;
-    quad_count: number;
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material) {
-        this.triangle_count = 0;
-        this.quad_count = 0;
+        this.device = device
         this.mapOpts = {
             mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial)
         };
@@ -46,26 +44,31 @@ export class MapScene implements scene {
     }
 
     getRenderData():RenderData{
-        var data = {
-            data: new Float32Array(), 
+        var data = { 
             viewTransform: this.observer.getView(),
-            groups: [], 
+            groups: [] as RenderGroup[], 
         }
         var i: number = 0;
-        var mapGroup: RenderGroup = {
-            config: this.mapOpts.mapConfig,
-            count: this.maps.length,
-        }
+        let arr = [] as number[];
         this.maps.forEach((map) => {
             map.update();
             var model = map.model;
-            for (var j: number = 0; j < 16; j++) {
-                data.data[16 * i + j] = <number>model.at(j);
+            var j: number = 0
+            for (; j < 16; j++) {
+                arr[16 * i + j] = <number>model.at(j);
             }
-            data.data[16 * i + j + 1] = map.animationMod;
-            
+            arr[16 * i + j] = map.animationMod;
+            i++
         });
 
+        let mapGroup: RenderGroup = {
+            data: new Float32Array(arr),
+            config: this.mapOpts.mapConfig,
+            count: this.maps.length,
+            bufferLayout: this.mapOpts.mapConfig.mesh.bufferLayout,
+            buffer: this.mapOpts.mapConfig.mesh.getVertices(1, this.device)
+        }
+        data.groups.push(mapGroup)
         return data;
     }
 

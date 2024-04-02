@@ -12,12 +12,26 @@ export class shaderConfig implements objectConfig{
     shader = map
     bindGroups = [] as GPUBindGroup[]
 
+    pipeline: GPURenderPipeline
+
+    bindGroupLayout: GPUBindGroupLayout
+
+    globalBuffer: GPUBuffer
+    mapMaterial: Material
+
+    depthStencilState!: GPUDepthStencilState;
+    depthStencilBuffer!: GPUTexture;
+    depthStencilView!: GPUTextureView;
+    depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
    
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, quality: number = 1){
         this.device = device
         this.quality = quality
-        const bindGroupLayout = this.device.createBindGroupLayout({
+        this.globalBuffer = globalBuffer
+        this.mapMaterial = mapMaterial
+    
+        this.bindGroupLayout = this.device.createBindGroupLayout({
             entries: [
                 {
                     binding: 0,
@@ -34,34 +48,86 @@ export class shaderConfig implements objectConfig{
                     visibility: GPUShaderStage.FRAGMENT,
                     sampler: {}
                 },
+                {
+                    binding: 3,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {
+                        type: "read-only-storage" as GPUBufferBindingType
+                    }
+                },
             ]
 
         });
+
+        const pipelineLayout = this.device.createPipelineLayout({
+            bindGroupLayouts: [this.bindGroupLayout]
+        });
     
-        this.bindGroups.push(this.device.createBindGroup({
-            layout: bindGroupLayout,
+        this.pipeline = this.device.createRenderPipeline({
+            vertex : {
+                module : this.device.createShaderModule({
+                    code : map
+                }),
+                entryPoint : "vs_main",
+                buffers: [this.mesh.bufferLayout,]
+            },
+    
+            fragment : {
+                module : this.device.createShaderModule({
+                    code : map
+                }),
+                entryPoint : "fs_main",
+                targets : [{
+                    format : "bgra8unorm" as GPUTextureFormat
+                }]
+            },
+    
+            primitive : {
+                topology : "triangle-list"
+            },
+    
+            layout: pipelineLayout,
+            depthStencil: this.depthStencilState,
+        });
+
+    }
+
+
+    getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup{
+
+        
+        return this.device.createBindGroup({
+            layout: this.bindGroupLayout,
             entries: [
                 {
                     binding: 0,
                     resource: {
-                        buffer: globalBuffer
+                        buffer: this.globalBuffer
                     }
                 },
                 {
                     binding: 1,
-                    resource: mapMaterial.view
+                    resource: this.mapMaterial.view
                 },
                 {
                     binding: 2,
-                    resource: mapMaterial.sampler
+                    resource: this.mapMaterial.sampler
+                },
+                {
+                    binding: 3,
+                    resource: {
+                        buffer: subModelBuffer
+                    }
                 }
             ]
-        }));
-
-    } 
-
+        });
+    }
 
     getVerticies(): GPUBuffer{
         return this.mesh.getVertices(this.quality, this.device)
+    }
+
+    getVerticeNo(): number{
+        return this.mesh.verticeNo
     }
 }

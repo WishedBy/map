@@ -18,13 +18,7 @@ export class Renderer {
 
     // Pipeline objects
     globalBuffer!: GPUBuffer;
-    uniformBuffer!: GPUBuffer;
-    bindGroup!: GPUBindGroup;
-    pipeline!: GPURenderPipeline;
 
-    // Assets
-    mapMesh!: MapMesh;
-    mapMaterial!: Material;
 
     //a little dodgy but let's do this for not
     t: number = 0.0;
@@ -59,9 +53,7 @@ export class Renderer {
     async Initialize() {
 
         await this.setupDevice();
-        await this.createAssets();
         await this.makeDepthBufferResources();
-        await this.makePipeline();
         
     }
 
@@ -78,86 +70,9 @@ export class Renderer {
 
     }
 
-    async makePipeline() {
 
-        this.uniformBuffer = this.device.createBuffer({
-            size: (64 * 3)+4+12,
-            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-        });
-
-        const bindGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.VERTEX,
-                    buffer: {}
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                },
-            ]
-
-        });
     
-        this.bindGroup = this.device.createBindGroup({
-            layout: bindGroupLayout,
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: this.uniformBuffer
-                    }
-                },
-                {
-                    binding: 1,
-                    resource: this.mapMaterial.view
-                },
-                {
-                    binding: 2,
-                    resource: this.mapMaterial.sampler
-                }
-            ]
-        });
         
-        const pipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [bindGroupLayout]
-        });
-    
-        this.pipeline = this.device.createRenderPipeline({
-            vertex : {
-                module : this.device.createShaderModule({
-                    code : map
-                }),
-                entryPoint : "vs_main",
-                buffers: [this.mapMesh.bufferLayout,]
-            },
-    
-            fragment : {
-                module : this.device.createShaderModule({
-                    code : map
-                }),
-                entryPoint : "fs_main",
-                targets : [{
-                    format : this.format
-                }]
-            },
-    
-            primitive : {
-                topology : "triangle-list"
-            },
-    
-            layout: pipelineLayout,
-            depthStencil: this.depthStencilState,
-        });
-
-    }
 
     async makeDepthBufferResources() {
 
@@ -198,12 +113,6 @@ export class Renderer {
 
     }
 
-    async createAssets() {
-        
-        this.mapMaterial = await Material.create(this.device, "assets/img/world-vivid.jpg");
-
-        this.mapMesh = new MapMesh();
-    }
 
     render = () => {
         
@@ -217,8 +126,6 @@ export class Renderer {
         if(dir == 1){
             sphereMod = 1 - sphereMod;
         }
-        // sphereMod = 0.1
-        this.mapMesh.getVertices(1,this.device)
 
         //make transforms
         const projection = mat4.create();
@@ -237,6 +144,9 @@ export class Renderer {
         this.scene.update()
         var renderData = this.scene.getRenderData()
 
+        
+
+
         //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
         //texture view: image view to the color buffer in this case
@@ -254,10 +164,20 @@ export class Renderer {
             depthStencilAttachment: this.depthStencilAttachment,
         });
         
-        renderpass.setPipeline(this.pipeline);
-        renderpass.setVertexBuffer(0, this.mapMesh.buffer);
-        renderpass.setBindGroup(0, this.bindGroup);
-        renderpass.draw(this.mapMesh.verticeNo, 1, 0, 0);
+        for(let i in renderData.groups){
+            let group = renderData.groups[i];
+
+            let buffer = this.device.createBuffer({
+                size: group.data.byteLength,
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+            });
+            this.device.queue.writeBuffer(buffer, 0, group.data); 
+
+            renderpass.setPipeline(group.config.pipeline);
+            renderpass.setVertexBuffer(0, group.buffer);
+            renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
+            renderpass.draw(group.config.getVerticeNo(), 1, 0, 0);
+        }
         renderpass.end();
     
         this.device.queue.submit([commandEncoder.finish()]);
