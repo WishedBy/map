@@ -39,8 +39,8 @@ export class Material {
             arrayLayerCount: 1
         };
         const samplerDescriptor: GPUSamplerDescriptor = {
-            addressModeU: "clamp-to-edge",
-            addressModeV: "clamp-to-edge",
+            addressModeU: "mirror-repeat",
+            addressModeV: "mirror-repeat",
             magFilter: "linear",
             minFilter: "linear",
             mipmapFilter: "linear",
