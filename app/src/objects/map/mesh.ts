@@ -6,32 +6,27 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 500; 
+    maxSize = 1000; 
     lastSize = 0; 
 
     usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
 
     constructor() {
 
-
-        let stride = 5*4;
-        let tOffset = 3*4;
-
-
  
         //now define the buffer layout
         this.bufferLayout = {
-            arrayStride: stride,
+            arrayStride: 4*4,
             attributes: [
                 {
                     shaderLocation: 0,
-                    format: "float32x3" as const,
+                    format: "float32x2" as const,
                     offset: 0
                 },
                 {
                     shaderLocation: 1,
                     format: "float32x2" as const,
-                    offset: tOffset
+                    offset: 2*4
                 },
             ]
         }
@@ -66,19 +61,19 @@ export class MapMesh {
                 let nextlon = ((j+1)*stepLon)-Math.PI;
 
 
-                listVert.push(0, lon, lat, ...uv(lat, lon));
-                listVert.push(0, nextlon, lat, ...uv(lat, lon));
-                listVert.push(0, lon, nextlat, ...uv(lat, lon));
+                listVert.push(lon, lat, ...uv(lat, lon));
+                listVert.push(nextlon, lat, ...uv(lat, lon));
+                listVert.push(lon, nextlat, ...uv(lat, lon));
 
                 // bottom right triangle
-                listVert.push(0, lon, nextlat, ...uv(lat, lon));
-                listVert.push(0, nextlon, lat, ...uv(lat, lon));
-                listVert.push(0, nextlon, nextlat, ...uv(lat, lon));
+                listVert.push(lon, nextlat, ...uv(lat, lon));
+                listVert.push(nextlon, lat, ...uv(lat, lon));
+                listVert.push(nextlon, nextlat, ...uv(lat, lon));
 
 
             }
         }
-        this.verticeNo = listVert.length/5
+        this.verticeNo = listVert.length/4;
         const vertices: Float32Array = new Float32Array(listVert);
 
         const descriptor: GPUBufferDescriptor = {
