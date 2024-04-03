@@ -12,14 +12,13 @@ export class shaderConfig implements objectConfig{
     shader = map
     bindGroups = [] as GPUBindGroup[]
 
-    pipeline: GPURenderPipeline
+    pipelineLayout: GPUPipelineLayout
 
     bindGroupLayout: GPUBindGroupLayout
 
     globalBuffer: GPUBuffer
     mapMaterial: Material
 
-    depthStencilState!: GPUDepthStencilState;
     depthStencilBuffer!: GPUTexture;
     depthStencilView!: GPUTextureView;
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
@@ -59,11 +58,15 @@ export class shaderConfig implements objectConfig{
 
         });
 
-        const pipelineLayout = this.device.createPipelineLayout({
+        this.pipelineLayout = this.device.createPipelineLayout({
             bindGroupLayouts: [this.bindGroupLayout]
         });
     
-        this.pipeline = this.device.createRenderPipeline({
+
+    }
+
+    getPipeline(dss: GPUDepthStencilState): GPURenderPipeline {
+        return this.device.createRenderPipeline({
             vertex : {
                 module : this.device.createShaderModule({
                     code : map
@@ -86,10 +89,9 @@ export class shaderConfig implements objectConfig{
                 topology : "triangle-list"
             },
     
-            layout: pipelineLayout,
-            depthStencil: this.depthStencilState,
+            layout: this.pipelineLayout,
+            depthStencil: dss,
         });
-
     }
 
 

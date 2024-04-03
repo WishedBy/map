@@ -116,16 +116,6 @@ export class Renderer {
 
     render = () => {
         
-        this.t += 0.001;
-        if (this.t > 1) {
-            this.t -= 1;
-        }
-        let sphereT = this.t*2;
-        let dir = sphereT > 1 ? 1 : 0; 
-        let sphereMod = (sphereT-dir);
-        if(dir == 1){
-            sphereMod = 1 - sphereMod;
-        }
 
         //make transforms
         const projection = mat4.create();
@@ -168,12 +158,12 @@ export class Renderer {
             let group = renderData.groups[i];
 
             let buffer = this.device.createBuffer({
-                size: group.data.byteLength,
+                size: group.data.byteLength + (16-(group.data.byteLength%16)),
                 usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
             });
             this.device.queue.writeBuffer(buffer, 0, group.data); 
 
-            renderpass.setPipeline(group.config.pipeline);
+            renderpass.setPipeline(group.config.getPipeline(this.depthStencilState));
             renderpass.setVertexBuffer(0, group.buffer);
             renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
             renderpass.draw(group.config.getVerticeNo(), 1, 0, 0);

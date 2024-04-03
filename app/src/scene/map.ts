@@ -18,6 +18,8 @@ export class MapScene implements scene {
     maps: MapModel[];
     observer: Camera;
 
+    t: number = 0.0;
+
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material) {
         this.device = device
         this.mapOpts = {
@@ -33,10 +35,24 @@ export class MapScene implements scene {
 
 
     update() {
-       this.observer.update();
-       this.maps.forEach((map) => {
-            map.update();
+        this.t += 0.001;
+        if (this.t > 1) {
+            this.t -= 1;
+        }
+        let sphereT = this.t*2;
+        let dir = sphereT > 1 ? 1 : 0; 
+        let sphereMod = (sphereT-dir);
+        if(dir == 1){
+            sphereMod = 1 - sphereMod;
+        }
+
+        this.observer.update();
+        this.maps.forEach((map) => {
+            
+            map.update(sphereMod);
         });
+
+        
     }
 
     getObserver(): Camera {
@@ -51,7 +67,6 @@ export class MapScene implements scene {
         var i: number = 0;
         let arr = [] as number[];
         this.maps.forEach((map) => {
-            map.update();
             var model = map.model;
             var j: number = 0
             for (; j < 16; j++) {

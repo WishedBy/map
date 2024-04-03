@@ -13,6 +13,7 @@ export class MapModel {
     }
 
     update(animationMod: number = 0) {
+        this.animationMod = animationMod;
         this.model = mat4.create();
         mat4.translate(this.model, this.model, this.position);
     }
