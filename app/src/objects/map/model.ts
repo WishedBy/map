@@ -10,11 +10,13 @@ export class MapModel {
 
     constructor(position: vec3){
         this.position = position;
+        this.model = mat4.create();
     }
 
-    update(animationMod: number = 0) {
+    update(rotate: number, animationMod: number) {
         this.animationMod = animationMod;
         this.model = mat4.create();
+        mat4.rotate(this.model, this.model, rotate*Math.PI*2, [0,0,1]);
         mat4.translate(this.model, this.model, this.position);
     }
 }

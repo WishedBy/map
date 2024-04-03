@@ -38,7 +38,6 @@ fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec3<f3
     var lon = vertexPostion[1];
     var lat = vertexPostion[2];
 
-    // test cylinder
     var x = r*cos(lon)*m1*(1-m2) + r*cos(lat)*cos(lon)*m2;
     var y = r*sin(lon)*m1*(1-m2) + r*cos(lat)*sin(lon)*m2;
     var z = (1-m2)*lat + r*sin(lat)*m2;

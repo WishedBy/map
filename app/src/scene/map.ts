@@ -35,7 +35,7 @@ export class MapScene implements scene {
 
 
     update() {
-        this.t += 0.001;
+        this.t += 0.002;
         if (this.t > 1) {
             this.t -= 1;
         }
@@ -49,7 +49,7 @@ export class MapScene implements scene {
         this.observer.update();
         this.maps.forEach((map) => {
             
-            map.update(sphereMod);
+            map.update(this.t, sphereMod);
         });
 
         
