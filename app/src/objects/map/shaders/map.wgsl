@@ -22,7 +22,8 @@ struct Fragment {
     @builtin(position) Position : vec4<f32>,
     @location(0) TexCoord : vec2<f32>,
 };
-
+const pi = 3.14159265359;
+const halfpi = pi/2;
 @vertex
 fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
     var m = objects.models[ID].animationMod;
@@ -38,7 +39,7 @@ fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec2<f3
     var lon = vertexPostion[0];
     var lat = vertexPostion[1];
 
-    var x = r*cos(lon)*m1*(1-m2) + r*cos(lat)*cos(lon)*m2;
+    var x = (r*cos(lon)*m1*(1-m2) + r*cos(lat)*cos(lon)*m2);
     var y = r*sin(lon)*m1*(1-m2) + r*cos(lat)*sin(lon)*m2;
     var z = (1-m2)*lat + r*sin(lat)*m2;
     
