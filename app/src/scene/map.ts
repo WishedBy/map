@@ -33,7 +33,15 @@ export class MapScene implements scene {
         this.maps = [new MapModel([0, 0, 0])];
     }
 
-
+    easeInOutCubic(x: number): number {
+        return x < 0.5 ? (4 * x * x * x) : (1 - Math.pow(-2 * x + 2, 3) / 2);
+    }
+    easeInOutCubicDouble(x: number): number {
+        if(x < 0.5){
+           return this.easeInOutCubic(x*2)/2 
+        }
+        return (this.easeInOutCubic((x-0.5)*2)/2)+0.5
+    }
     update() {
         this.t += 0.002;
         if (this.t > 1) {
@@ -49,7 +57,7 @@ export class MapScene implements scene {
         this.observer.update();
         this.maps.forEach((map) => {
             
-            map.update(this.t, sphereMod);
+            map.update(this.t, this.easeInOutCubicDouble(sphereMod));
         });
 
         
