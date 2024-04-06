@@ -3,7 +3,7 @@ import { objectConfig } from "../objects/objectConfig"
 
 export type RenderGroup = {
     config: objectConfig
-    count: Number
+    count: number
     bufferLayout: GPUVertexBufferLayout
     buffer: GPUBuffer
     data: Float32Array

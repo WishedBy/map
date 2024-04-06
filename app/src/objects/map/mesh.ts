@@ -44,8 +44,8 @@ export class MapMesh {
         let listVert: number[] = [];
 
         let uv = (lat: number, lon: number): number[] => {
-            let u: number = 1-((lon+Math.PI)/tau)
-            let v: number = 1-((lat+halfpi)/Math.PI)
+            let u: number = ((lon+Math.PI)/tau)
+            let v: number = ((lat+halfpi)/Math.PI)
             
             return [u, v]
         }

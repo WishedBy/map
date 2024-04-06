@@ -124,15 +124,15 @@ export class Renderer {
         // near = 0.1, far = 10 
         mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, 100);
 
-        const view = this.scene.getObserver().getView()
+
+        this.scene.update()
+        var renderData = this.scene.getRenderData()
+        const view = renderData.viewTransform;
 
         
  
         this.device.queue.writeBuffer(this.globalBuffer, 0, <ArrayBuffer>view); 
         this.device.queue.writeBuffer(this.globalBuffer, 64, <ArrayBuffer>projection); 
-
-        this.scene.update()
-        var renderData = this.scene.getRenderData()
 
         
 
@@ -147,7 +147,7 @@ export class Renderer {
         const renderpass : GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
-                clearValue: {r: 0, g: 0.0, b: 0, a: 1.0},
+                clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
                 loadOp: "clear" as const,
                 storeOp: "store" as const
             }],
@@ -156,17 +156,18 @@ export class Renderer {
         
         for(let i in renderData.groups){
             let group = renderData.groups[i];
-
             let buffer = this.device.createBuffer({
                 size: group.data.byteLength + (16-(group.data.byteLength%16)),
-                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                mappedAtCreation: true
             });
-            this.device.queue.writeBuffer(buffer, 0, group.data); 
+            new Float32Array(buffer.getMappedRange()).set(group.data);
+            buffer.unmap();
 
             renderpass.setPipeline(group.config.getPipeline(this.depthStencilState));
             renderpass.setVertexBuffer(0, group.buffer);
             renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
-            renderpass.draw(group.config.getVerticeNo(), 1, 0, 0);
+            renderpass.draw(group.config.getVerticeNo(), group.count, 0, 0);
         }
         renderpass.end();
     

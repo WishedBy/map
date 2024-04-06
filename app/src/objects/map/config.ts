@@ -18,17 +18,19 @@ export class shaderConfig implements objectConfig{
 
     globalBuffer: GPUBuffer
     mapMaterial: Material
+    mapMaterialDark: Material
 
     depthStencilBuffer!: GPUTexture;
     depthStencilView!: GPUTextureView;
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
    
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, quality: number = 1){
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, quality: number = 1){
         this.device = device
         this.quality = quality
         this.globalBuffer = globalBuffer
         this.mapMaterial = mapMaterial
+        this.mapMaterialDark = mapMaterialDark
     
         this.bindGroupLayout = this.device.createBindGroupLayout({
             entries: [
@@ -53,6 +55,16 @@ export class shaderConfig implements objectConfig{
                     buffer: {
                         type: "read-only-storage" as GPUBufferBindingType
                     }
+                },
+                {
+                    binding: 4,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    texture: {}
+                },
+                {
+                    binding: 5,
+                    visibility: GPUShaderStage.FRAGMENT,
+                    sampler: {}
                 },
             ]
 
@@ -81,12 +93,25 @@ export class shaderConfig implements objectConfig{
                 }),
                 entryPoint : "fs_main",
                 targets : [{
-                    format : "bgra8unorm" as GPUTextureFormat
+                    format : "bgra8unorm" as GPUTextureFormat,
+                    blend: {
+                        color:{
+                            operation: "add" as GPUBlendOperation,
+                            srcFactor: "src-alpha" as GPUBlendFactor,
+                            dstFactor: "one-minus-src-alpha" as GPUBlendFactor,
+                        },
+                        alpha:{
+                            operation: "add" as GPUBlendOperation,
+                            srcFactor: "src-alpha" as GPUBlendFactor,
+                            dstFactor: "one-minus-src-alpha" as GPUBlendFactor,
+                        },
+                    },
                 }]
             },
     
             primitive : {
-                topology : "triangle-list"
+                topology : "triangle-list",
+                cullMode: 'none',
             },
     
             layout: this.pipelineLayout,
@@ -120,7 +145,15 @@ export class shaderConfig implements objectConfig{
                     resource: {
                         buffer: subModelBuffer
                     }
-                }
+                },
+                {
+                    binding: 4,
+                    resource: this.mapMaterialDark.view
+                },
+                {
+                    binding: 5,
+                    resource: this.mapMaterialDark.sampler
+                },
             ]
         });
     }

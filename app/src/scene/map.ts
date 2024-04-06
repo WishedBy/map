@@ -20,17 +20,17 @@ export class MapScene implements scene {
 
     t: number = 0.0;
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material) {
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material) {
         this.device = device
         this.mapOpts = {
-            mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial)
+            mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial, mapMaterialDark)
         };
 
 
         this.observer = new Camera(
-            [-5, 0, 0], [0, 0, 0], [0, 0, 1]
+            [-20, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [new MapModel([0, 0, 0])];
+        this.maps = [new MapModel([0,-5,0]), new MapModel([0,0,0])];
     }
 
     easeInOutCubic(x: number): number {
@@ -76,11 +76,16 @@ export class MapScene implements scene {
         let arr = [] as number[];
         this.maps.forEach((map) => {
             var model = map.model;
-            var j: number = 0
-            for (; j < 16; j++) {
-                arr[16 * i + j] = <number>model.at(j);
+            var rot = map.rot;
+            var c: number = 0
+            let s = 33;
+            for (let j = 0; j < 16; j++,c++) {
+                arr[s * i + c] = <number>model.at(j);
             }
-            arr[16 * i + j] = map.animationMod;
+            for (let j = 0; j < 16; j++,c++) {
+                arr[s * i + c] = <number>rot.at(j);
+            }
+            arr[s * i + c] = map.animationMod;
             i++
         });
 
