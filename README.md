@@ -1,3 +1,11 @@
+# About
+
+The goals of this project:
+- provide methods for displaying metrics and statistics that can be tied to a geographic location in a cool manner.
+  - may be extended to non geographic data aswell, by providing multiple different types of views.
+- learn webasembly
+- learn webGPU
+
 ### credits
 while learning the following resources have been helpfull:
 
