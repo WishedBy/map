@@ -5,7 +5,8 @@ struct TransformData {
 
 struct model {
     model: mat4x4<f32>,
-    rot: mat4x4<f32>,
+    normalMatrix: mat4x4<f32>,
+    position: vec3<f32>,
     animationMod: f32,
 };
 
@@ -25,8 +26,11 @@ struct Fragment {
     @builtin(position) Position : vec4<f32>,
     @location(0) TexCoord : vec2<f32>,
     @location(1) Normal : vec3<f32>,
+    @location(2) vPos : vec3<f32>,
+
 };
 
+const lightPosition = vec3<f32>(-10, -10, 5);
 const pi = 3.14159265359;
 const halfpi = pi/2;
 @vertex
@@ -52,19 +56,27 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: 
     
     x *= m1;
     y = ((1-m1)*lon) + (m1*y);
-    var n = vec4<f32>(x, y, z, 1.0); // (x-0)/1, (y-0)/1, (z-0)/1
+    
+    var n = vec4<f32>((x)/r, (y)/r, (z)/r, 0); 
+    n = object.normalMatrix * n;
+
+    // normal is used for lighting, using the normalized position of the light as normal for the flat shape makes it always lit up.
+    let nlp = normalize(lightPosition);
+    n.x = n.x*m1 + nlp.x*(1-m1);
+    n.y = n.y*m1 + nlp.y*(1-m1);
+    n.z = n.z*m1 + nlp.z*(1-m1);
 
     var output : Fragment;
     var pos = vec4<f32>(x, y, z, 1.0);
-    pos = object.rot * pos;
     pos = object.model * pos;
+    output.vPos = pos.xyz;
     pos = transformer.projection * transformer.view * pos;
    
     output.Position = pos;
     output.TexCoord = vertexTexCoord;
 
-    let rn = object.rot * n;
-    output.Normal = vec3<f32>(rn[0], rn[1], rn[2]);
+    output.Normal = n.xyz;
+
 
     return output;
 }
@@ -74,18 +86,18 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let col1 = textureSample(myTexture, mySampler, frag.TexCoord);
     let col2 = textureSample(myTextureDark, mySamplerDark, frag.TexCoord);
 
-    let vNormal = normalize(vec4<f32>(frag.Normal, 1));
-    let lightPosition = vec4<f32>(0, 0, 5, 0);
+    let vNormal = normalize(frag.Normal);
     
-    let diffuseLightStrength = 2.0;
+    let diffuseLightStrength = 1.0;
     let ambientLightIntensity = 0.0;
 
 
-    let lightDir = normalize(lightPosition - frag.Position);
+    let lightDir = normalize(lightPosition - frag.vPos.xyz);
     let lightMagnitude = dot(vNormal, lightDir);
 
     let diffuseLightFinal: f32 = diffuseLightStrength * max(lightMagnitude, 0);
-    let lightFinal = diffuseLightFinal + ambientLightIntensity;
+    var lightFinal = diffuseLightFinal + ambientLightIntensity;
+
 
     var col = col1*lightFinal + col2*(1-lightFinal);
     col[3] = 1.0;

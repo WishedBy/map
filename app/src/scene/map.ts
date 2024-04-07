@@ -75,18 +75,7 @@ export class MapScene implements scene {
         let mapv = this.mapOpts.mapConfig.mesh.getVertices(1, this.device);
         let data: Float32Array[] = [];
         this.maps.forEach((map) => {
-            let arr = [] as number[];
-            var model = map.model;
-            var rot = map.rot;
-            var c: number = 0
-            for (let i = 0; i < 16; i++,c++) {
-                arr[c] = <number>model.at(i);
-            }
-            for (let i = 0; i < 16; i++,c++) {
-                arr[c] = <number>rot.at(i);
-            }
-            arr[c] = map.animationMod;
-            data.push(new Float32Array(arr))
+            data.push(map.getRenderModel())
 
         });
         let mapGroup: RenderGroup = {
