@@ -7,6 +7,7 @@ import { RenderData, RenderGroup } from "./renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
 import { scene } from "./scene";
 import { Material } from "../objects/material";
+import { easeInOutCubicDouble } from "../stepper";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -28,19 +29,9 @@ export class MapScene implements scene {
 
 
         this.observer = new Camera(
-            [-20, 0, 0], [0, 0, 0], [0, 0, -1]
+            [-10, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [new MapModel([0,-5,0]), new MapModel([0,5,0])];
-    }
-
-    easeInOutCubic(x: number): number {
-        return x < 0.5 ? (4 * x * x * x) : (1 - Math.pow(-2 * x + 2, 3) / 2);
-    }
-    easeInOutCubicDouble(x: number): number {
-        if(x < 0.5){
-           return this.easeInOutCubic(x*2)/2 
-        }
-        return (this.easeInOutCubic((x-0.5)*2)/2)+0.5
+        this.maps = [new MapModel([0,0,0])];
     }
     update() {
         this.t += 0.002;
@@ -57,7 +48,7 @@ export class MapScene implements scene {
         this.observer.update();
         this.maps.forEach((map) => {
             
-            map.update(this.t, this.easeInOutCubicDouble(sphereMod));
+            map.update(this.t, easeInOutCubicDouble(sphereMod));
         });
 
         

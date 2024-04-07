@@ -16,7 +16,7 @@ export class MapMesh {
  
         //now define the buffer layout
         this.bufferLayout = {
-            arrayStride: 4*4,
+            arrayStride: 7*4,
             attributes: [
                 {
                     shaderLocation: 0,
@@ -25,8 +25,13 @@ export class MapMesh {
                 },
                 {
                     shaderLocation: 1,
-                    format: "float32x2" as const,
+                    format: "float32x3" as const,
                     offset: 2*4
+                },
+                {
+                    shaderLocation: 2,
+                    format: "float32x2" as const,
+                    offset: 5*4
                 },
             ]
         }
@@ -40,46 +45,53 @@ export class MapMesh {
         }
         this.lastSize = size
         let halfpi = Math.PI/2;
-        let tau = Math.PI*2;
+        let lonLength = Math.PI*2;
+        let lonHalf = lonLength/2;
         let listVert: number[] = [];
 
         let uv = (lat: number, lon: number): number[] => {
-            let u: number = ((lon+Math.PI)/tau)
+            let u: number = ((lon+lonHalf)/lonLength)
             let v: number = ((lat+halfpi)/Math.PI)
             
             return [u, v]
         }
+        let sphere = (lat: number, lon: number): number[] => {
+            return [
+                r*Math.cos(lat)*Math.cos(lon),
+                r*Math.cos(lat)*Math.sin(lon),
+                r*Math.sin(lat),
+            ]
+        }
 
-        let r = 1;
+        var r = halfpi;
         let stepLat = Math.PI/size;
-        let stepLon = stepLat*2;
+        let stepLon = lonLength/size;
         for(let i = 0; i < size; i++){
             let lat = (i*stepLat)-halfpi;
             let nextlat = ((i+1)*stepLat)-halfpi;
             for(let j = 0; j < size; j++){
-                let lon = (j*stepLon)-Math.PI;
-                let nextlon = ((j+1)*stepLon)-Math.PI;
+                let lon = (j*stepLon)-lonHalf;
+                let nextlon = ((j+1)*stepLon)-lonHalf;
 
-
-                listVert.push(lon, lat, ...uv(lat, lon));
-                listVert.push(nextlon, lat, ...uv(lat, lon));
-                listVert.push(lon, nextlat, ...uv(lat, lon));
+                listVert.push(lon, lat, ...sphere(lat, lon), ...uv(lat, lon));
+                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, lon));
+                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(lat, lon));
 
                 // bottom right triangle
-                listVert.push(lon, nextlat, ...uv(lat, lon));
-                listVert.push(nextlon, lat, ...uv(lat, lon));
-                listVert.push(nextlon, nextlat, ...uv(lat, lon));
+                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(lat, lon));
+                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, lon));
+                listVert.push(nextlon, nextlat, ...sphere(nextlat, nextlon), ...uv(lat, lon));
 
 
             }
         }
-        this.verticeNo = listVert.length/4;
+        this.verticeNo = listVert.length/7;
         const vertices: Float32Array = new Float32Array(listVert);
 
         const descriptor: GPUBufferDescriptor = {
             size: vertices.byteLength,
             usage: this.usage,
-            mappedAtCreation: true // similar to HOST_VISIBLE, allows buffer to be written by the CPU
+            mappedAtCreation: true 
         };
         this.buffer = device.createBuffer(descriptor);
         

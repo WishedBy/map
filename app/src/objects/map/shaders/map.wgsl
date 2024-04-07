@@ -34,10 +34,9 @@ const lightPosition = vec3<f32>(-10, -10, 5);
 const pi = 3.14159265359;
 const halfpi = pi/2;
 @vertex
-fn vs_main( @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
+fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>, @location(2) vertexTexCoord: vec2<f32>) -> Fragment {
 
     var m = object.animationMod;
-    var r = halfpi;
     var m1 = 0.0;
     var m2 = 0.0;
     if(m <= 0.5){
@@ -46,16 +45,23 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: 
         m1 = 1;
         m2 = (m*2)-1;
     }
+    var r = halfpi;
     var lon = vertexPostion[0];
     var lat = vertexPostion[1];
 
-    var x = -1 * ((r*cos(lon)*m1*(1-m2) + r*cos(lat)*cos(lon)*m2));
-    var y = r*sin(lon)*m1*(1-m2) + r*cos(lat)*sin(lon)*m2;
-    var z = (1-m2)*lat + r*sin(lat)*m2;
-    
-    
-    x *= m1;
-    y = ((1-m1)*lon) + (m1*y);
+    var x = 0.0;
+    var y = lon;
+    var z = lat;
+    if(m >= 0.999){
+        x = -1*vertexPostionSphere.x;
+        y = vertexPostionSphere.y;
+        z = vertexPostionSphere.z;
+    }else if(m > 0.001){
+        x = -1 * ((r*cos(lon)*m1*(1-m2) + vertexPostionSphere.x*m2));
+        y = r*sin(lon)*m1*(1-m2) + vertexPostionSphere.y*m2;
+        z = (1-m2)*lat + vertexPostionSphere.z*m2;
+        y = ((1-m1)*lon) + (y);
+    }
     
     var n = vec4<f32>((x)/r, (y)/r, (z)/r, 0); 
     n = object.normalMatrix * n;
