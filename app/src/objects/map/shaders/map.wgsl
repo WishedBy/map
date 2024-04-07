@@ -9,29 +9,31 @@ struct model {
     animationMod: f32,
 };
 
-struct ObjectData {
-    models: array<model>,
-};
 
 @binding(0) @group(0) var<uniform> transformer: TransformData;
+
 @binding(1) @group(0) var myTexture: texture_2d<f32>;
 @binding(2) @group(0) var mySampler: sampler;
+
+@binding(3) @group(0) var<storage, read> object: model;
+
 @binding(4) @group(0) var myTextureDark: texture_2d<f32>;
 @binding(5) @group(0) var mySamplerDark: sampler;
 
-@binding(3) @group(0) var<storage, read> objects: array<model>;
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
     @location(0) TexCoord : vec2<f32>,
     @location(1) Normal : vec3<f32>,
 };
+
 const pi = 3.14159265359;
 const halfpi = pi/2;
 @vertex
-fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
-    var m = objects[ID].animationMod;
-    var r = 1.0;
+fn vs_main( @location(0) vertexPostion: vec2<f32>, @location(1) vertexTexCoord: vec2<f32>) -> Fragment {
+
+    var m = object.animationMod;
+    var r = halfpi;
     var m1 = 0.0;
     var m2 = 0.0;
     if(m <= 0.5){
@@ -54,14 +56,14 @@ fn vs_main(@builtin(instance_index) ID: u32, @location(0) vertexPostion: vec2<f3
 
     var output : Fragment;
     var pos = vec4<f32>(x, y, z, 1.0);
-    pos = objects[ID].rot * pos;
-    pos = objects[ID].model * pos;
+    pos = object.rot * pos;
+    pos = object.model * pos;
     pos = transformer.projection * transformer.view * pos;
    
     output.Position = pos;
     output.TexCoord = vertexTexCoord;
 
-    let rn = objects[ID].rot * n;
+    let rn = object.rot * n;
     output.Normal = vec3<f32>(rn[0], rn[1], rn[2]);
 
     return output;
@@ -73,7 +75,7 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let col2 = textureSample(myTextureDark, mySamplerDark, frag.TexCoord);
 
     let vNormal = normalize(vec4<f32>(frag.Normal, 1));
-    let lightPosition = vec4<f32>(5,-5, 0, 1);
+    let lightPosition = vec4<f32>(0, 0, 5, 0);
     
     let diffuseLightStrength = 2.0;
     let ambientLightIntensity = 0.0;

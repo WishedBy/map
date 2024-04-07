@@ -137,9 +137,7 @@ export class Renderer {
         
 
 
-        //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
-        //texture view: image view to the color buffer in this case
         const textureView : GPUTextureView = this.context.getCurrentTexture().createView();
 
         
@@ -154,20 +152,22 @@ export class Renderer {
             depthStencilAttachment: this.depthStencilAttachment,
         });
         
-        for(let i in renderData.groups){
+        for(let i = 0; i < renderData.groups.length; i++){
             let group = renderData.groups[i];
-            let buffer = this.device.createBuffer({
-                size: group.data.byteLength + (16-(group.data.byteLength%16)),
-                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                mappedAtCreation: true
-            });
-            new Float32Array(buffer.getMappedRange()).set(group.data);
-            buffer.unmap();
-
             renderpass.setPipeline(group.config.getPipeline(this.depthStencilState));
             renderpass.setVertexBuffer(0, group.buffer);
-            renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
-            renderpass.draw(group.config.getVerticeNo(), group.count, 0, 0);
+            for(let j = 0; j < group.data.length; j++){
+                let d = group.data[j];
+                let buffer = this.device.createBuffer({
+                    size: d.byteLength + (16-(d.byteLength%16)),
+                    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+                    mappedAtCreation: true
+                });
+                new Float32Array(buffer.getMappedRange()).set(d);
+                buffer.unmap();
+                renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
+                renderpass.draw(group.config.getVerticeNo());
+            }
         }
         renderpass.end();
     

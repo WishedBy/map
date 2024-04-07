@@ -30,7 +30,7 @@ export class MapScene implements scene {
         this.observer = new Camera(
             [-20, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [new MapModel([0,-5,0]), new MapModel([0,0,0])];
+        this.maps = [new MapModel([0,-5,0]), new MapModel([0,5,0])];
     }
 
     easeInOutCubic(x: number): number {
@@ -68,36 +68,34 @@ export class MapScene implements scene {
     }
 
     getRenderData():RenderData{
-        var data = { 
+        var res = { 
             viewTransform: this.observer.getView(),
             groups: [] as RenderGroup[], 
         }
-        var i: number = 0;
-        let arr = [] as number[];
+        let mapv = this.mapOpts.mapConfig.mesh.getVertices(1, this.device);
+        let data: Float32Array[] = [];
         this.maps.forEach((map) => {
+            let arr = [] as number[];
             var model = map.model;
             var rot = map.rot;
             var c: number = 0
-            let s = 33;
-            for (let j = 0; j < 16; j++,c++) {
-                arr[s * i + c] = <number>model.at(j);
+            for (let i = 0; i < 16; i++,c++) {
+                arr[c] = <number>model.at(i);
             }
-            for (let j = 0; j < 16; j++,c++) {
-                arr[s * i + c] = <number>rot.at(j);
+            for (let i = 0; i < 16; i++,c++) {
+                arr[c] = <number>rot.at(i);
             }
-            arr[s * i + c] = map.animationMod;
-            i++
-        });
+            arr[c] = map.animationMod;
+            data.push(new Float32Array(arr))
 
+        });
         let mapGroup: RenderGroup = {
-            data: new Float32Array(arr),
+            data: data,
             config: this.mapOpts.mapConfig,
-            count: this.maps.length,
-            bufferLayout: this.mapOpts.mapConfig.mesh.bufferLayout,
-            buffer: this.mapOpts.mapConfig.mesh.getVertices(1, this.device)
+            buffer: mapv,
         }
-        data.groups.push(mapGroup)
-        return data;
+        res.groups.push(mapGroup)
+        return res;
     }
 
 

@@ -6,10 +6,10 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 1000; 
+    maxSize = 500; 
     lastSize = 0; 
 
-    usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST;
+    usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX;
 
     constructor() {
 
