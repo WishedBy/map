@@ -5,9 +5,9 @@ import { Camera } from "../camera/camera";
 import { MapModel } from "../objects/map/model";
 import { RenderData, RenderGroup } from "./renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
-import { scene } from "./scene";
+import { light, scene } from "./scene";
 import { Material } from "../objects/material";
-import { easeInOutCubicDouble } from "../stepper";
+import { Stepper, StepperTimerCycleType, StepperTimerType, easeInOutCubicDouble } from "../stepper";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -18,8 +18,10 @@ export class MapScene implements scene {
     mapOpts: mapOpts
     maps: MapModel[];
     observer: Camera;
+    light: light = new light([-10,-10,0], 1, 0);
 
-    t: number = 0.0;
+    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperTimerCycleType.Restart);
+    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperTimerCycleType.Reverse, easeInOutCubicDouble);
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material) {
         this.device = device
@@ -34,26 +36,18 @@ export class MapScene implements scene {
         this.maps = [new MapModel([0,0,0])];
     }
     update() {
-        this.t += 0.002;
-        if (this.t > 1) {
-            this.t -= 1;
-        }
-        let sphereT = this.t*2;
-        let dir = sphereT > 1 ? 1 : 0; 
-        let sphereMod = (sphereT-dir);
-        if(dir == 1){
-            sphereMod = 1 - sphereMod;
-        }
 
         this.observer.update();
         this.maps.forEach((map) => {
-            
-            map.update(this.t, easeInOutCubicDouble(sphereMod));
+            map.update(this.rotationStepper.step(), this.mapStepper.step());
         });
 
         
     }
 
+    getLight(): light {
+        return this.light;
+    }
     getObserver(): Camera {
         return this.observer;
     }

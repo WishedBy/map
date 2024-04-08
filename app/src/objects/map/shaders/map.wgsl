@@ -1,6 +1,12 @@
+struct light{
+        lightPosition: vec3<f32>,
+        diffuseStrength: f32,
+        ambientIntensity: f32,
+    }
 struct TransformData {
     view: mat4x4<f32>,
     projection: mat4x4<f32>,
+    light: light
 };
 
 struct model {
@@ -30,7 +36,6 @@ struct Fragment {
 
 };
 
-const lightPosition = vec3<f32>(-10, -10, 5);
 const pi = 3.14159265359;
 const halfpi = pi/2;
 @vertex
@@ -67,7 +72,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     n = object.normalMatrix * n;
 
     // normal is used for lighting, using the normalized position of the light as normal for the flat shape makes it always lit up.
-    let nlp = normalize(lightPosition);
+    let nlp = normalize(transformer.light.lightPosition);
     n.x = n.x*m1 + nlp.x*(1-m1);
     n.y = n.y*m1 + nlp.y*(1-m1);
     n.z = n.z*m1 + nlp.z*(1-m1);
@@ -94,11 +99,11 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
 
     let vNormal = normalize(frag.Normal);
     
-    let diffuseLightStrength = 1.0;
-    let ambientLightIntensity = 0.0;
+    let diffuseLightStrength = transformer.light.diffuseStrength;
+    let ambientLightIntensity = transformer.light.ambientIntensity;
 
 
-    let lightDir = normalize(lightPosition - frag.vPos.xyz);
+    let lightDir = normalize(transformer.light.lightPosition - frag.vPos.xyz);
     let lightMagnitude = dot(vNormal, lightDir);
 
     let diffuseLightFinal: f32 = diffuseLightStrength * max(lightMagnitude, 0);

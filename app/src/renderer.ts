@@ -36,7 +36,7 @@ export class Renderer {
         this.t = 0.0; 
 
         this.globalBuffer = this.device.createBuffer({
-            size: (64 * 2),
+            size: (64 * 2)+20+12,// +12 is alignment trailer
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
         
@@ -133,6 +133,7 @@ export class Renderer {
  
         this.device.queue.writeBuffer(this.globalBuffer, 0, <ArrayBuffer>view); 
         this.device.queue.writeBuffer(this.globalBuffer, 64, <ArrayBuffer>projection); 
+        this.device.queue.writeBuffer(this.globalBuffer, 128, this.scene.getLight().getBuffer()); 
 
         
 

@@ -34,8 +34,9 @@ export class Stepper{
     duration: number; // either a duration in ms, or number of steps, depending on timerType
 
 
-    cycleCount: number = 0;
     startTime: number = 0;
+    lastNum: number = 0;
+    cycleBack: boolean = false;
 
     constructor(
         timerType:StepperTimerType, 
@@ -50,9 +51,74 @@ export class Stepper{
     }
 
 
+    stepTime(): number {
+        if(this.startTime == 0){
+            this.startTime = Date.now()
+        }
+        let cd = Date.now()
+        let since = cd-this.startTime;
 
+        
+        if(since > this.duration){
+            if(this.cycleType == StepperTimerCycleType.End){
+                return 1;
+            }
+        }
+        let n = (since%this.duration)*(1/this.duration)
+        if(n > 0.999999){
+            n = 1;
+        }
+        if(n < 0.000001){
+            n = 0;
+        }
+        if(this.cycleBack){
+            n = 1 - n;
+        }
 
+        if(n == 1 || n == 0 && this.cycleType == StepperTimerCycleType.Reverse){
+            this.cycleBack = !this.cycleBack;
+        }
+        this.lastNum = n;
+        return n;
+
+    }
+    step01(): number {
+        let n = this.lastNum;
+        if(n == 1){
+            if(this.cycleType == StepperTimerCycleType.End){
+                return n;
+            }else{
+                n = 0;
+            }
+        }
+        if(this.cycleBack){
+            n -= 1/this.duration;
+        }else{
+            n += 1/this.duration;
+        }
+        if(n > 0.999999){
+            n = 1;
+        }
+        if(n < 0.000001){
+            n = 0;
+        }
+
+        if(n == 1 || n == 0 && this.cycleType == StepperTimerCycleType.Reverse){
+            this.cycleBack = !this.cycleBack;
+        }
+        this.lastNum = n;
+        return n;
+    }
     step(): number {
-        return 0;
+        let num = 0;
+        switch(this.timerType){
+            case StepperTimerType.Time:
+                num = this.stepTime();
+            break;
+            case StepperTimerType.Step01:
+                num = this.step01();
+            break;
+        }
+        return this.easeFunc(num);
     }
 }
