@@ -16,3 +16,6 @@ map from:
 https://mapswire.com/info/public-domain-maps/
 
 more complete map will probably be added later as i dont think this is a full projection
+
+resources to look at:
+https://www.naturalearthdata.com/
