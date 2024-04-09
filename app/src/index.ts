@@ -7,8 +7,8 @@ import { scene } from "./scene/scene";
 export async function main(canvas: HTMLCanvasElement ){
   
   var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
-  var mapMaterial = await Material.create(device, "assets/img/physical-world-map-mercator.jpg");
-  var mapMaterialDark = await Material.create(device, "assets/img/image.jpg");
+  var mapMaterial = await Material.create(device, "assets/img/map.png");
+  var mapMaterialDark = await Material.create(device, "assets/img/map-dark.png");
   const renderer = new Renderer(canvas, device, (globalBuffer: GPUBuffer): scene => {
     return new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark);
   });
