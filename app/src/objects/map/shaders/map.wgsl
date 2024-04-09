@@ -57,11 +57,11 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     var x = 0.0;
     var y = lon;
     var z = lat;
-    if(m >= 0.999){
+    if(m == 1){
         x = -1*vertexPostionSphere.x;
         y = vertexPostionSphere.y;
         z = vertexPostionSphere.z;
-    }else if(m > 0.001){
+    }else if(m > 0){
         x = -1 * ((r*cos(lon)*m1*(1-m2) + vertexPostionSphere.x*m2));
         y = r*sin(lon)*m1*(1-m2) + vertexPostionSphere.y*m2;
         z = (1-m2)*lat + vertexPostionSphere.z*m2;

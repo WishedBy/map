@@ -33,7 +33,10 @@ export class MapScene implements scene {
         this.observer = new Camera(
             [-10, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [new MapModel([0,0,0]), new MapModel([-4,-1,0])];
+        this.maps = [
+            new MapModel([4,-1,0]),
+            new MapModel([0,1,0]), 
+        ];
     }
     update() {
 
