@@ -7,7 +7,7 @@ import { RenderData, RenderGroup } from "./renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
 import { light, scene } from "./scene";
 import { Material } from "../objects/material";
-import { Stepper, StepperTimerCycleType, StepperTimerType, easeInOutCubicDouble } from "../stepper";
+import { Stepper, StepperCycleType, StepperTimerType, easeInOutCubicDouble, easeNOOP } from "../stepper";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -20,8 +20,8 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
-    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperTimerCycleType.Restart);
-    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperTimerCycleType.Reverse, easeInOutCubicDouble);
+    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
+    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material) {
         this.device = device
@@ -33,13 +33,15 @@ export class MapScene implements scene {
         this.observer = new Camera(
             [-10, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [new MapModel([0,0,0])];
+        this.maps = [new MapModel([0,0,0]), new MapModel([-4,-1,0])];
     }
     update() {
 
         this.observer.update();
+        let a = this.rotationStepper.step();
+        let b = this.mapStepper.step();
         this.maps.forEach((map) => {
-            map.update(this.rotationStepper.step(), this.mapStepper.step());
+            map.update(a,b);
         });
 
         

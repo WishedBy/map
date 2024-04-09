@@ -3,10 +3,10 @@ export enum StepperTimerType {
     Step01 = "step01",
     Time = "time",
 }
-export enum StepperTimerCycleType {
+export enum StepperCycleType {
     End = "end",
     Restart = "restart",
-    Reverse = "reverseOnce",
+    Reverse = "reverse",
 }
 
 type easeFunc = (x: number) => number;
@@ -29,73 +29,75 @@ export const easeInOutCubicDouble = (x: number): number => {
 
 export class Stepper{
     timerType:StepperTimerType;
-    cycleType:StepperTimerCycleType;
+    cycleType:StepperCycleType;
     easeFunc:easeFunc;
     duration: number; // either a duration in ms, or number of steps, depending on timerType
 
 
     startTime: number = 0;
-    lastNum: number = 0;
+    last: number = 0;
     cycleBack: boolean = false;
 
     constructor(
         timerType:StepperTimerType, 
         duration: number, // either a duration in time, or step size between 0 and 1
-        cycleType:StepperTimerCycleType = StepperTimerCycleType.Restart, 
+        cycleType:StepperCycleType = StepperCycleType.Restart, 
         easeFunc:easeFunc = easeNOOP,
+        inverse:boolean = false, 
     ){
         this.timerType = timerType;
         this.easeFunc = easeFunc;
         this.cycleType = cycleType;
         this.duration = duration;
+        this.cycleBack = inverse;
     }
 
-
     stepTime(): number {
-        if(this.startTime == 0){
-            this.startTime = Date.now()
-        }
-        let cd = Date.now()
-        let since = cd-this.startTime;
+        let now = Date.now();
 
-        
-        if(since > this.duration){
-            if(this.cycleType == StepperTimerCycleType.End){
-                return 1;
-            }
+        if(this.startTime == 0){
+            this.startTime = now
+            return 0;
         }
-        let n = (since%this.duration)*(1/this.duration)
+        let since = now-this.startTime;
+        
+        if(since >= this.duration && this.cycleType == StepperCycleType.End){
+            return 1;
+        }
+        
+        let n = since / this.duration
         if(n > 0.999999){
             n = 1;
         }
         if(n < 0.000001){
             n = 0;
         }
+        
         if(this.cycleBack){
-            n = 1 - n;
+            n = 1 - n
         }
 
-        if(n == 1 || n == 0 && this.cycleType == StepperTimerCycleType.Reverse){
-            this.cycleBack = !this.cycleBack;
+        if((n == 1 || n == 0) && this.last != now){
+            this.startTime = now
+            if(this.cycleType == StepperCycleType.Reverse){
+                this.cycleBack = !this.cycleBack;
+            }
         }
-        this.lastNum = n;
+        this.last = now
         return n;
 
     }
     step01(): number {
-        let n = this.lastNum;
+        let n = this.last;
         if(n == 1){
-            if(this.cycleType == StepperTimerCycleType.End){
+            if(this.cycleType == StepperCycleType.End){
                 return n;
             }else{
                 n = 0;
             }
         }
-        if(this.cycleBack){
-            n -= 1/this.duration;
-        }else{
-            n += 1/this.duration;
-        }
+        n += 1/this.duration;
+        
         if(n > 0.999999){
             n = 1;
         }
@@ -103,12 +105,18 @@ export class Stepper{
             n = 0;
         }
 
-        if(n == 1 || n == 0 && this.cycleType == StepperTimerCycleType.Reverse){
+        this.last = n;
+
+        if(this.cycleBack){
+            n = 1 - n
+        }
+        if((n == 1 || n == 0) && this.cycleType == StepperCycleType.Reverse){
             this.cycleBack = !this.cycleBack;
         }
-        this.lastNum = n;
         return n;
     }
+
+    
     step(): number {
         let num = 0;
         switch(this.timerType){
