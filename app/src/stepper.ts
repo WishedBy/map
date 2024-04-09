@@ -57,11 +57,13 @@ export class Stepper{
 
         if(this.startTime == 0){
             this.startTime = now
+            this.last = now
             return 0;
         }
         let since = now-this.startTime;
         
         if(since >= this.duration && this.cycleType == StepperCycleType.End){
+            this.last = now
             return 1;
         }
         
