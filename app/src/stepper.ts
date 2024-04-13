@@ -64,12 +64,19 @@ export class Stepper{
     }
 
     reset(): Stepper {
-        
         this.pausedTime = 0;
         this.startTime = 0;
         this.cycleBack = this.inverse;
         this.lastT = this.inverse ? 1 : 0;
         this.lastTRes = this.inverse ? 1 : 0;
+        return this;
+    }
+    set(t: number, back: boolean = false): Stepper {
+        this.lastT = t;
+        if(back){
+            t = 1 - t
+        }
+        this.lastTRes = this.easeFunc(t);
         return this;
     }
 
@@ -130,8 +137,8 @@ export class Stepper{
 
         if(t >= 1){
             if(this.cycleType == StepperCycleType.End){
-                this.startTime = 0;
-                this.lastT = 1;
+                this.stop();
+                this.set(1, this.cycleBack)
                 return 1;
             }else{
                 t = 0;
@@ -147,7 +154,6 @@ export class Stepper{
             t = 0;
         }
 
-        this.lastT = t;
         
         if(t == 1 || t == 0){
             if(this.pauseAfterCycle){
@@ -157,11 +163,7 @@ export class Stepper{
                 this.cycleBack = !this.cycleBack;
             }
         }
-        if(this.cycleBack){
-            t = 1 - t
-        }
-
-        this.lastTRes = this.easeFunc(t);
+        this.set(t, this.cycleBack)
         return this.lastTRes;
     }
 }
