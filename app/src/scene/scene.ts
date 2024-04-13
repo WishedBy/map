@@ -20,6 +20,6 @@ export class light {
 export type scene = {
     update(): void
     getObserver(): Camera
-    getRenderData():RenderData
+    getRenderData(dss: GPUDepthStencilState):RenderData
     getLight(): light
 }

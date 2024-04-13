@@ -114,6 +114,7 @@ export class Renderer {
     }
 
 
+
     render = () => {
         
 
@@ -126,7 +127,7 @@ export class Renderer {
 
 
         this.scene.update()
-        var renderData = this.scene.getRenderData()
+        var renderData = this.scene.getRenderData(this.depthStencilState)
         const view = renderData.viewTransform;
 
         
@@ -155,19 +156,23 @@ export class Renderer {
         
         for(let i = 0; i < renderData.groups.length; i++){
             let group = renderData.groups[i];
-            renderpass.setPipeline(group.config.getPipeline(this.depthStencilState));
-            renderpass.setVertexBuffer(0, group.buffer);
-            for(let j = 0; j < group.data.length; j++){
-                let d = group.data[j];
+            renderpass.setPipeline(group.pipeline);
+            renderpass.setVertexBuffer(0, group.vertexBuffer);
+            for(let j = 0; j < group.objects.length; j++){
+                let d = group.objects[j];
+                let bsize = d.data.byteLength + (16-(d.data.byteLength%16));
+                if(bsize < 144){
+                    bsize = 144
+                }
                 let buffer = this.device.createBuffer({
-                    size: d.byteLength + (16-(d.byteLength%16)),
+                    size: bsize,
                     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
                     mappedAtCreation: true
                 });
-                new Float32Array(buffer.getMappedRange()).set(d);
+                new Float32Array(buffer.getMappedRange()).set(d.data);
                 buffer.unmap();
-                renderpass.setBindGroup(0, group.config.getBindGroup(buffer));
-                renderpass.draw(group.config.getVerticeNo());
+                renderpass.setBindGroup(0, group.getBindGroup(buffer));
+                renderpass.draw(d.vertexNo, undefined, d.vertexOffset);
             }
         }
         renderpass.end();

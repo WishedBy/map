@@ -1,10 +1,16 @@
 import { mat4 } from "gl-matrix"
-import { objectConfig } from "../objects/objectConfig"
 
+export type RenderObject = {
+    data: Float32Array
+    vertexNo: number
+    vertexOffset: number
+
+}
 export type RenderGroup = {
-    config: objectConfig
-    buffer: GPUBuffer
-    data: Float32Array[]
+    objects: RenderObject[]
+    vertexBuffer: GPUBuffer
+    pipeline: GPURenderPipeline
+    getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup
 }
 
 export type RenderData = {

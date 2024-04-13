@@ -1,17 +1,14 @@
 import { Material } from "../material";
-import { MapMesh } from "./mesh";
-import map from "./shaders/map.wgsl";
+import stream from "./shaders/stream.wgsl";
 
 
 export class shaderConfig{
     device: GPUDevice
     quality: number
-    mesh: MapMesh = new MapMesh();
 
-    shader = map
+    shader = stream
     bindGroups = [] as GPUBindGroup[]
 
-    pipelineLayout: GPUPipelineLayout
 
     bindGroupLayout: GPUBindGroupLayout
 
@@ -40,55 +37,49 @@ export class shaderConfig{
                 },
                 {
                     binding: 1,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                },
-                {
-                    binding: 3,
                     visibility: GPUShaderStage.VERTEX,
                     buffer: {
                         type: "read-only-storage" as GPUBufferBindingType
                     }
                 },
-                {
-                    binding: 4,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 5,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                },
             ]
 
         });
 
-        this.pipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [this.bindGroupLayout]
-        });
     
 
     }
 
     getPipeline(dss: GPUDepthStencilState): GPURenderPipeline {
+        
         return this.device.createRenderPipeline({
             vertex : {
                 module : this.device.createShaderModule({
-                    code : map
+                    code : stream
                 }),
                 entryPoint : "vs_main",
-                buffers: [this.mesh.bufferLayout,]
+                buffers: [
+                    {
+                        arrayStride: 4*4,
+                        attributes: [
+                            {
+                                shaderLocation: 0,
+                                format: "float32x2" as const,
+                                offset: 0
+                            },
+                            {
+                                shaderLocation: 1,
+                                format: "float32x2" as const,
+                                offset: 2*4
+                            },
+                        ]
+                    },
+                ]
             },
     
             fragment : {
                 module : this.device.createShaderModule({
-                    code : map
+                    code : stream
                 }),
                 entryPoint : "fs_main",
                 targets : [{
@@ -113,7 +104,9 @@ export class shaderConfig{
                 cullMode: 'none',
             },
     
-            layout: this.pipelineLayout,
+            layout: this.device.createPipelineLayout({
+                bindGroupLayouts: [this.bindGroupLayout]
+            }),
             depthStencil: dss,
         });
     }
@@ -121,6 +114,7 @@ export class shaderConfig{
 
     getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup{
 
+        
         return this.device.createBindGroup({
             layout: this.bindGroupLayout,
             entries: [
@@ -132,25 +126,9 @@ export class shaderConfig{
                 },
                 {
                     binding: 1,
-                    resource: this.mapMaterial.view
-                },
-                {
-                    binding: 2,
-                    resource: this.mapMaterial.sampler
-                },
-                {
-                    binding: 3,
                     resource: {
                         buffer: subModelBuffer
                     }
-                },
-                {
-                    binding: 4,
-                    resource: this.mapMaterialDark.view
-                },
-                {
-                    binding: 5,
-                    resource: this.mapMaterialDark.sampler
                 },
             ]
         });
@@ -158,6 +136,6 @@ export class shaderConfig{
 
 
     getVerticeNo(): number{
-        return this.mesh.verticeNo
+        return 6
     }
 }

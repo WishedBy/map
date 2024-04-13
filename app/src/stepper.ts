@@ -96,6 +96,8 @@ export class Stepper{
         }else{
             if(this.startTime > 0){
                 this.startTime += (Date.now()-this.pausedTime)
+            }else{
+                this.startTime = Date.now();
             }
             this.pausedTime = 0;
         }

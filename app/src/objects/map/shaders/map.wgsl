@@ -1,8 +1,8 @@
 struct light{
-        lightPosition: vec3<f32>,
-        diffuseStrength: f32,
-        ambientIntensity: f32,
-    }
+    lightPosition: vec3<f32>,
+    diffuseStrength: f32,
+    ambientIntensity: f32,
+}
 struct TransformData {
     view: mat4x4<f32>,
     projection: mat4x4<f32>,

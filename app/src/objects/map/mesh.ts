@@ -2,14 +2,12 @@
 
 export class MapMesh {
 
-    buffer!: GPUBuffer
+    vertices!: number[]
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
     maxSize = 500; 
     lastSize = 0; 
-
-    usage: GPUBufferUsageFlags = GPUBufferUsage.VERTEX;
 
     constructor() {
 
@@ -38,10 +36,10 @@ export class MapMesh {
 
     }
 
-    getVertices(mod:number = 1, device: GPUDevice): GPUBuffer{
+    getVertices(mod:number = 1): number[]{
         let size = this.maxSize/mod;
         if (this.lastSize == size){
-            return this.buffer
+            return this.vertices
         }
         this.lastSize = size
         let halfpi = Math.PI/2;
@@ -86,18 +84,8 @@ export class MapMesh {
             }
         }
         this.verticeNo = listVert.length/7;
-        const vertices: Float32Array = new Float32Array(listVert);
+        this.vertices = listVert;
 
-        const descriptor: GPUBufferDescriptor = {
-            size: vertices.byteLength,
-            usage: this.usage,
-            mappedAtCreation: true 
-        };
-        this.buffer = device.createBuffer(descriptor);
-        
-        //Buffer has been created, now load in the vertices
-        new Float32Array(this.buffer.getMappedRange()).set(vertices);
-        this.buffer.unmap();
-        return this.buffer
+        return this.vertices
     }
 }
