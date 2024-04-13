@@ -28,15 +28,21 @@ export const easeInOutCubicDouble = (x: number): number => {
 }
 
 export class Stepper{
+    // config
     timerType:StepperTimerType;
     cycleType:StepperCycleType;
     easeFunc:easeFunc;
     duration: number; // either a duration in ms, or number of steps, depending on timerType
+    pauseAfterCycle: boolean = false;
+    inverse: boolean = false;
 
-
+    // state
+    pausedTime: number = 0;
     startTime: number = 0;
-    last: number = 0;
+    lastT: number = 0;
     cycleBack: boolean = false;
+    lastTRes: number = 0;
+
 
     constructor(
         timerType:StepperTimerType, 
@@ -44,91 +50,119 @@ export class Stepper{
         cycleType:StepperCycleType = StepperCycleType.Restart, 
         easeFunc:easeFunc = easeNOOP,
         inverse:boolean = false, 
+        pauseAfterCycle: boolean = false,
     ){
         this.timerType = timerType;
         this.easeFunc = easeFunc;
         this.cycleType = cycleType;
         this.duration = duration;
+        this.pauseAfterCycle = pauseAfterCycle;
+        this.inverse = inverse;
         this.cycleBack = inverse;
+        this.lastT = inverse ? 1 : 0;
+        this.lastTRes = inverse ? 1 : 0;
     }
 
-    stepTime(): number {
-        let now = Date.now();
-
+    play(): Stepper {
         if(this.startTime == 0){
-            this.startTime = now
-            this.last = now
-            return 0;
+            this.startTime = Date.now();
         }
-        let since = now-this.startTime;
-        
-        if(since >= this.duration && this.cycleType == StepperCycleType.End){
-            this.last = now
-            return 1;
-        }
-        
-        let n = since / this.duration
-        if(n > 0.999999){
-            n = 1;
-        }
-        if(n < 0.000001){
-            n = 0;
-        }
-        
-        if(this.cycleBack){
-            n = 1 - n
-        }
-
-        if((n == 1 || n == 0) && this.last != now){
-            this.startTime = now
-            if(this.cycleType == StepperCycleType.Reverse){
-                this.cycleBack = !this.cycleBack;
-            }
-        }
-        this.last = now
-        return n;
-
+        this.pausedTime = 0;
+        return this;
     }
-    step01(): number {
-        let n = this.last;
-        if(n == 1){
-            if(this.cycleType == StepperCycleType.End){
-                return n;
-            }else{
-                n = 0;
+    pause(): Stepper {
+        if(this.pausedTime == 0){
+            this.pausedTime = Date.now();
+        }else{
+            if(this.startTime > 0){
+                this.startTime += (Date.now()-this.pausedTime)
             }
+            this.pausedTime = 0;
         }
-        n += 1/this.duration;
+        return this;
+    }
+
+    stop(): Stepper {
+        this.startTime = 0;
+        this.pausedTime = 0;
+        return this;
+    }
+
+    reset(): Stepper {
         
-        if(n > 0.999999){
-            n = 1;
-        }
-        if(n < 0.000001){
-            n = 0;
-        }
+        this.pausedTime = 0;
+        this.startTime = 0;
+        this.cycleBack = this.inverse;
+        this.lastT = this.inverse ? 1 : 0;
+        this.lastTRes = this.inverse ? 1 : 0;
+        return this;
+    }
 
-        this.last = n;
+    stepTimeT(t: number): number {
+        let now = Date.now();
+        let since = now-this.startTime;
+        t = since / this.duration;
+        return t;
+    }
+    step01T(t: number): number {
+        t += 1/this.duration;
+        return t;
+    }
 
-        if(this.cycleBack){
-            n = 1 - n
-        }
-        if((n == 1 || n == 0) && this.cycleType == StepperCycleType.Reverse){
-            this.cycleBack = !this.cycleBack;
-        }
-        return n;
+    playing(): boolean{
+        return this.startTime > 0 && this.pausedTime == 0
     }
 
     
     step(): number {
-        let num = 0;
+        if(!this.playing()){
+            return this.lastTRes;
+        }
+        let t = this.lastT;
         switch(this.timerType){
             case StepperTimerType.Time:
-                num = this.stepTime();
+                t = this.stepTimeT(t);
             break;
             case StepperTimerType.Step01:
-                num = this.step01();
+                t = this.step01T(t);
             break;
         }
-        return this.easeFunc(num);
+
+
+        if(t >= 1){
+            if(this.cycleType == StepperCycleType.End){
+                this.startTime = 0;
+                this.lastT = 1;
+                return 1;
+            }else{
+                t = 0;
+            }
+        }
+
+        if(t > 0.999999){
+            this.startTime = Date.now();
+            t = 1;
+        }
+        if(t < 0.000001){
+            this.startTime = Date.now();
+            t = 0;
+        }
+
+        this.lastT = t;
+        
+        if(t == 1 || t == 0){
+            if(this.pauseAfterCycle){
+                this.pause();
+            }
+            if(this.cycleType == StepperCycleType.Reverse){
+                this.cycleBack = !this.cycleBack;
+            }
+        }
+        if(this.cycleBack){
+            t = 1 - t
+        }
+
+        this.lastTRes = this.easeFunc(t);
+        return this.lastTRes;
     }
 }

@@ -13,9 +13,7 @@ https://www.youtube.com/watch?v=akM4wMZIBWg&list=PLRqwX-V7Uu6ZiZxtDDRCi6uhfTH4Fi
 https://github.com/amengede/webgpu-for-beginners/tree/main
 
 map from:
-https://mapswire.com/info/public-domain-maps/
-
-more complete map will probably be added later as i dont think this is a full projection
+https://www.naturalearthdata.com/
 
 resources to look at:
 https://www.naturalearthdata.com/

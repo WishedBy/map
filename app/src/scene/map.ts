@@ -20,8 +20,8 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
-    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
-    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
+    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true).play();
+    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble).play();
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material) {
         this.device = device
@@ -34,9 +34,15 @@ export class MapScene implements scene {
             [-10, 0, 0], [0, 0, 0], [0, 0, -1]
         );
         this.maps = [
-            new MapModel([4,-1,0]),
-            new MapModel([0,1,0]), 
+            new MapModel([0,0,0]), 
         ];
+
+
+        $(window).on("click",(e: JQuery.Event) => {
+            this.rotationStepper.pause();
+            this.mapStepper.pause();
+        });
+
     }
     update() {
 

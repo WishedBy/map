@@ -9,9 +9,14 @@ export async function main(canvas: HTMLCanvasElement ){
   var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
   var mapMaterial = await Material.create(device, "assets/img/map.png");
   var mapMaterialDark = await Material.create(device, "assets/img/map-dark.png");
+
+  var scene: scene;
   const renderer = new Renderer(canvas, device, (globalBuffer: GPUBuffer): scene => {
-    return new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark);
+    scene = new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark);
+    return scene;
   });
+
+
   await renderer.Initialize();
   renderer.render();
 }
