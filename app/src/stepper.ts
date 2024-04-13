@@ -58,11 +58,24 @@ export class Stepper{
         this.duration = duration;
         this.pauseAfterCycle = pauseAfterCycle;
         this.inverse = inverse;
-        this.cycleBack = inverse;
-        this.lastT = inverse ? 1 : 0;
-        this.lastTRes = inverse ? 1 : 0;
+
+        this.reset();
+
     }
 
+    reset(): Stepper {
+        
+        this.pausedTime = 0;
+        this.startTime = 0;
+        this.cycleBack = this.inverse;
+        this.lastT = this.inverse ? 1 : 0;
+        this.lastTRes = this.inverse ? 1 : 0;
+        return this;
+    }
+
+    playing(): boolean{
+        return this.startTime > 0 && this.pausedTime == 0
+    }
     play(): Stepper {
         if(this.startTime == 0){
             this.startTime = Date.now();
@@ -81,22 +94,12 @@ export class Stepper{
         }
         return this;
     }
-
     stop(): Stepper {
         this.startTime = 0;
         this.pausedTime = 0;
         return this;
     }
 
-    reset(): Stepper {
-        
-        this.pausedTime = 0;
-        this.startTime = 0;
-        this.cycleBack = this.inverse;
-        this.lastT = this.inverse ? 1 : 0;
-        this.lastTRes = this.inverse ? 1 : 0;
-        return this;
-    }
 
     stepTimeT(t: number): number {
         let now = Date.now();
@@ -107,10 +110,6 @@ export class Stepper{
     step01T(t: number): number {
         t += 1/this.duration;
         return t;
-    }
-
-    playing(): boolean{
-        return this.startTime > 0 && this.pausedTime == 0
     }
 
     
