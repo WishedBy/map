@@ -29,6 +29,8 @@ export class Renderer {
     depthStencilView!: GPUTextureView;
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
 
+    sampleCount = 1;
+
 
     constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer) => scene){
         this.canvas = canvas;
@@ -91,6 +93,7 @@ export class Renderer {
             size: size,
             format: "depth24plus-stencil8",
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            sampleCount: this.sampleCount
         }
         this.depthStencilBuffer = this.device.createTexture(depthBufferDescriptor);
 
@@ -127,7 +130,7 @@ export class Renderer {
 
 
         this.scene.update()
-        var renderData = this.scene.getRenderData(this.depthStencilState)
+        var renderData = this.scene.getRenderData(this.depthStencilState, this.sampleCount)
         const view = renderData.viewTransform;
 
         
@@ -140,13 +143,28 @@ export class Renderer {
 
 
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
-        const textureView : GPUTextureView = this.context.getCurrentTexture().createView();
+        const canvasTexture : GPUTexture = this.context.getCurrentTexture();
+        const canvasTextureView : GPUTextureView = canvasTexture.createView();
 
+        let reslvTarget: GPUTextureView|null = null;
+        let renderView: GPUTextureView = canvasTextureView;
+        if(this.sampleCount > 1){
+            let multisampleTexture = this.device.createTexture({
+                format: canvasTexture.format,
+                usage: GPUTextureUsage.RENDER_ATTACHMENT,
+                size: [canvasTexture.width, canvasTexture.height],
+                sampleCount: this.sampleCount,
+            });
+
+            reslvTarget = canvasTextureView
+            renderView = multisampleTexture.createView()
+        }
         
         //renderpass: holds draw commands, allocated from command encoder
         const renderpass : GPURenderPassEncoder = commandEncoder.beginRenderPass({
             colorAttachments: [{
-                view: textureView,
+                view: renderView,
+                resolveTarget:reslvTarget||undefined,
                 clearValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
                 loadOp: "clear" as const,
                 storeOp: "store" as const

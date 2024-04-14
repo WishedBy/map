@@ -6,7 +6,7 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 1500; 
+    maxSize = 1000; 
     lastSize = 0; 
 
     constructor() {

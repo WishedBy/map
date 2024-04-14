@@ -65,11 +65,14 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
 
     let w: f32 = object.widthNo;
     let l: f32 = object.lengthNo;
-    let gradStepL: f32 = 1.0/5;
+    let gradStepL: f32 = 1.0/20;
+    let po: f32 = l/100*5;
 
     var center = i32(round(l*object.animationMod));
     let dist = abs(i32(frag.ColID.x) - center);
     var a = max(1.0-(f32(dist)*gradStepL), 0.0)*0.5;
-
+    if(f32(frag.ColID.y) >= (w - 2) && (f32(frag.ColID.x) > po || f32(frag.ColID.x) < l-po)){
+        a = 1;
+    }
     return vec4<f32>(1, 0, 0, a);
 }

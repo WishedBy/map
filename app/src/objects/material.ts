@@ -19,7 +19,7 @@ export class Material {
     static async create(device: GPUDevice, url: string): Promise<Material> {
         const response: Response = await fetch(url);
         const blob: Blob = await response.blob();
-        const imageData: ImageBitmap = await createImageBitmap(blob/*, { imageOrientation: "flipY" }*/);
+        const imageData: ImageBitmap = await createImageBitmap(blob);
  
         const textureDescriptor: GPUTextureDescriptor = {
             size: {
@@ -27,7 +27,7 @@ export class Material {
                 height: imageData.height
             },
             format: "rgba8unorm",
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
+            usage: 22
         };
         const viewDescriptor: GPUTextureViewDescriptor = {
             format: "rgba8unorm",

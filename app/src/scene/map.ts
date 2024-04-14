@@ -128,7 +128,7 @@ export class MapScene implements scene {
         return buffer
     }
 
-    getRenderData(dss: GPUDepthStencilState):RenderData{
+    getRenderData(dss: GPUDepthStencilState, sampleCount: number):RenderData{
         var res = { 
             viewTransform: this.observer.getView(),
             groups: [] as RenderGroup[], 
@@ -146,7 +146,7 @@ export class MapScene implements scene {
         });
         let mapGroup: RenderGroup = {
             objects: objects,
-            pipeline: this.mapOpts.mapConfig.getPipeline(dss),
+            pipeline: this.mapOpts.mapConfig.getPipeline(dss, sampleCount),
             getBindGroup: (subModelBuffer: GPUBuffer) => this.mapOpts.mapConfig.getBindGroup(subModelBuffer),
             vertexBuffer: this.getVertexBuffer(mapv, "map"),
         }
@@ -172,7 +172,7 @@ export class MapScene implements scene {
         });
         let streamsGroup: RenderGroup = {
             objects: dataStreams,
-            pipeline: this.streamOpts.streamConfig.getPipeline(dss),
+            pipeline: this.streamOpts.streamConfig.getPipeline(dss, sampleCount),
             getBindGroup: (subModelBuffer: GPUBuffer) => this.streamOpts.streamConfig.getBindGroup(subModelBuffer),
             vertexBuffer: this.getVertexBuffer(vertices, "lines"),
         }

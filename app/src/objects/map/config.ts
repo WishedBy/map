@@ -76,7 +76,7 @@ export class shaderConfig{
 
     }
 
-    getPipeline(dss: GPUDepthStencilState): GPURenderPipeline {
+    getPipeline(dss: GPUDepthStencilState, sampleCount: number): GPURenderPipeline {
         return this.device.createRenderPipeline({
             vertex : {
                 module : this.device.createShaderModule({
@@ -108,6 +108,9 @@ export class shaderConfig{
                 }]
             },
     
+            multisample: {
+                count: sampleCount,
+            },
             primitive : {
                 topology : "triangle-list",
                 cullMode: 'none',
