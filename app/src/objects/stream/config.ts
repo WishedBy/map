@@ -1,4 +1,5 @@
 import { Material } from "../material";
+import { StreamMesh } from "./mesh";
 import stream from "./shaders/stream.wgsl";
 
 
@@ -8,6 +9,7 @@ export class shaderConfig{
 
     shader = stream
     bindGroups = [] as GPUBindGroup[]
+    mesh: StreamMesh = new StreamMesh();
 
 
     bindGroupLayout: GPUBindGroupLayout
@@ -37,7 +39,7 @@ export class shaderConfig{
                 },
                 {
                     binding: 1,
-                    visibility: GPUShaderStage.VERTEX,
+                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
                     buffer: {
                         type: "read-only-storage" as GPUBufferBindingType
                     }
@@ -59,21 +61,7 @@ export class shaderConfig{
                 }),
                 entryPoint : "vs_main",
                 buffers: [
-                    {
-                        arrayStride: 4*4,
-                        attributes: [
-                            {
-                                shaderLocation: 0,
-                                format: "float32x2" as const,
-                                offset: 0
-                            },
-                            {
-                                shaderLocation: 1,
-                                format: "float32x2" as const,
-                                offset: 2*4
-                            },
-                        ]
-                    },
+                    this.mesh.bufferLayout
                 ]
             },
     
@@ -136,6 +124,6 @@ export class shaderConfig{
 
 
     getVerticeNo(): number{
-        return 6
+        return this.mesh.verticeNo
     }
 }

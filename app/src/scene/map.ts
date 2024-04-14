@@ -26,6 +26,7 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
+    streamStepper: Stepper = new Stepper(StepperTimerType.Time, 1000, StepperCycleType.Restart, easeNOOP).play();
     rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
     mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
 
@@ -43,16 +44,26 @@ export class MapScene implements scene {
 
 
         this.observer = new Camera(
-            [-10, 0, 0], [0, 0, 0], [0, 0, -1]
+            [-4, 0, 0], [0, 0, 0], [0, 0, -1]
         );
         let mapPosition: vec3 = [0,0,0];
         this.maps = [
             new MapModel(mapPosition), 
         ];
+
+        let mapWidth    = 2*Math.PI;
+        let mapHeight   = Math.PI;
+        let lon2x = (lon: number):number => {
+            return lon*(mapWidth/360)
+        }
+        let lat2y = (lat: number):number => {
+            return ((lat * -1) * (mapHeight/ 180));
+        }
+
         this.streams = [
             new StreamModel(mapPosition, 
-                [(53.212365 * Math.PI / 180), (6.572019 * Math.PI / 180)], 
-                [(-51.737236 * Math.PI / 180), (-57.872822 * Math.PI / 180)]
+                [lon2x(6.572019), lat2y(53.212365)], 
+                [lon2x(-63.583266), lat2y(-54.751260)]
             ), 
         ];
 
@@ -68,8 +79,12 @@ export class MapScene implements scene {
         this.observer.update();
         let a = this.rotationStepper.step();
         let b = this.mapStepper.step();
+        let c = this.streamStepper.step();
         this.maps.forEach((map) => {
             map.update(a,b);
+        });
+        this.streams.forEach((s) => {
+            s.update(a, c);
         });
 
         
@@ -145,16 +160,14 @@ export class MapScene implements scene {
 
         
         let dataStreams: RenderObject[] = [];
-        let vertices:number[] = []
+        let vertices:number[] = this.streamOpts.streamConfig.mesh.getVertices()
         this.streams.forEach((stream, i) => {
             let o:RenderObject = { 
                 data: stream.getRenderModel(),
-                vertexNo: 6,
-                vertexOffset: i*6,
+                vertexNo: this.streamOpts.streamConfig.getVerticeNo(),
+                vertexOffset: 0,
             }
             dataStreams.push(o)
-            let verts = stream.getVertices();
-            vertices.push(...verts)
 
         });
         let streamsGroup: RenderGroup = {

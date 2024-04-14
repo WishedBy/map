@@ -6,7 +6,7 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 500; 
+    maxSize = 1500; 
     lastSize = 0; 
 
     constructor() {
@@ -37,7 +37,9 @@ export class MapMesh {
     }
 
     getVertices(mod:number = 1): number[]{
-        let size = this.maxSize/mod;
+        let sizex = this.maxSize/mod;
+        let sizey = sizex/2;
+        let size = sizex/sizey;
         if (this.lastSize == size){
             return this.vertices
         }
@@ -62,12 +64,12 @@ export class MapMesh {
         }
 
         var r = halfpi;
-        let stepLat = Math.PI/size;
-        let stepLon = lonLength/size;
-        for(let i = 0; i < size; i++){
+        let stepLat = Math.PI/sizey;
+        let stepLon = lonLength/sizex;
+        for(let i = 0; i < sizey; i++){
             let lat = (i*stepLat)-halfpi;
             let nextlat = ((i+1)*stepLat)-halfpi;
-            for(let j = 0; j < size; j++){
+            for(let j = 0; j < sizex; j++){
                 let lon = (j*stepLon)-lonHalf;
                 let nextlon = ((j+1)*stepLon)-lonHalf;
 

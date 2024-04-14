@@ -11,7 +11,11 @@ struct TransformData {
 
 struct model {
     model: mat4x4<f32>,
-    animationMod: f32
+    model2d: mat2x2<f32>,
+    offset2d: vec2<f32>,
+    animationMod: f32,
+    lengthNo: f32,
+    widthNo: f32,
 };
 
 
@@ -24,48 +28,32 @@ struct model {
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
+    @location(0) @interpolate(flat) ColID : vec2<u32>,
 
 };
 
 const pi = 3.14159265359;
 const halfpi = pi/2;
 @vertex
-fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>) -> Fragment {
+fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>,  @location(2) colid: vec2<f32>) -> Fragment {
 
-    var m = object.animationMod;
-    var m1 = 0.0;
-    var m2 = 0.0;
-    if(m <= 0.5){
-        m1 = (m*2);
-    }else{
-        m1 = 1;
-        m2 = (m*2)-1;
-    }
-    var r = halfpi;
-    var lon = vertexPostion[0];
-    var lat = vertexPostion[1];
+    var vpos = vertexPostion;
 
-    var x = 0.0;
-    var y = lon;
-    var z = lat;
-    if(m == 1){
-        x = -1*vertexPostionSphere.x;
-        y = vertexPostionSphere.y;
-        z = vertexPostionSphere.z;
-    }else if(m > 0){
-        x = -1 * ((r*cos(lon)*m1*(1-m2) + vertexPostionSphere.x*m2));
-        y = r*sin(lon)*m1*(1-m2) + vertexPostionSphere.y*m2;
-        z = (1-m2)*lat + vertexPostionSphere.z*m2;
-        y = ((1-m1)*lon) + (y);
-    }
+    vpos = object.model2d * vpos;
     
+    vpos += object.offset2d;
+
+    var pos = vec4<f32>(0, vpos, 1.0);
+
+
+  
 
     var output : Fragment;
-    var pos = vec4<f32>(x-1, y, z, 1.0);
     pos = object.model * pos;
     pos = transformer.projection * transformer.view * pos;
    
     output.Position = pos;
+    output.ColID = vec2<u32>(colid);
 
 
 
@@ -74,5 +62,14 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
 
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
-    return vec4<f32>(1, 0, 0, 1.0);
+
+    let w: f32 = object.widthNo;
+    let l: f32 = object.lengthNo;
+    let gradStepL: f32 = 1.0/5;
+
+    var center = i32(round(l*object.animationMod));
+    let dist = abs(i32(frag.ColID.x) - center);
+    var a = max(1.0-(f32(dist)*gradStepL), 0.0)*0.5;
+
+    return vec4<f32>(1, 0, 0, a);
 }
