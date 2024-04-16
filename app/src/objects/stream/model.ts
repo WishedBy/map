@@ -34,19 +34,28 @@ export class StreamModel {
 
     getRenderModel():Float32Array {
         let data = [];
-        var c: number = 0
-        for (let i = 0; i < 16; i++,c++) {
-            data[c] = <number>this.model.at(i);
+        for (let i = 0; i < 16; i++) {
+            data.push(<number>this.model.at(i));
         }
-        for (let i = 0; i < 4; i++,c++) {
-            data[c] = <number>this.model2d.at(i);
+        for (let i = 0; i < 4; i++) {
+            data.push(<number>this.model2d.at(i));
         }
-        for (let i = 0; i < 2; i++,c++) {
-            data[c] = <number>this.offset2d.at(i);
+        for (let i = 0; i < 2; i++) {
+            data.push(<number>this.offset2d.at(i));
         }
-        data[c] = this.animationMod;
-        data[c+1] = this.mesh.lengthNo;
-        data[c+2] = this.mesh.widthNo;
+        // align
+        data.push(0.0);
+        data.push(0.0);
+        // color
+        data.push(0.0);
+        data.push(1.0);
+        data.push(0.0);
+
+
+        data.push(this.animationMod);
+        data.push(this.mesh.lengthNo);
+        data.push(this.mesh.widthNo);
+        data.push(20);
 
         return new Float32Array(data);
     }

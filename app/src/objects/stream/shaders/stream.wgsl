@@ -13,9 +13,11 @@ struct model {
     model: mat4x4<f32>,
     model2d: mat2x2<f32>,
     offset2d: vec2<f32>,
+    color: vec3<f32>,
     animationMod: f32,
     lengthNo: f32,
     widthNo: f32,
+    fadeSteps: f32,
 };
 
 
@@ -32,8 +34,6 @@ struct Fragment {
 
 };
 
-const pi = 3.14159265359;
-const halfpi = pi/2;
 @vertex
 fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>,  @location(2) colid: vec2<f32>) -> Fragment {
 
@@ -65,14 +65,35 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
 
     let w: f32 = object.widthNo;
     let l: f32 = object.lengthNo;
-    let gradStepL: f32 = 1.0/20;
-    let po: f32 = l/100*5;
+    var steps: f32 = object.fadeSteps;
 
     var center = i32(round(l*object.animationMod));
-    let dist = abs(i32(frag.ColID.x) - center);
-    var a = max(1.0-(f32(dist)*gradStepL), 0.0)*0.5;
-    if(f32(frag.ColID.y) >= (w - 2) && (f32(frag.ColID.x) > po || f32(frag.ColID.x) < l-po)){
-        a = 1;
+    if(f32(center) < steps){
+        steps = f32(center);
     }
-    return vec4<f32>(1, 0, 0, a);
+    if(f32(center) > l-steps){
+        steps = l-f32(center);
+    }
+    let dist = abs(i32(frag.ColID.x) - center);
+    let gradStepL: f32 = 1.0/steps;
+    var a = max(1.0-(f32(dist)*gradStepL), 0.0)*0.5;
+    var r = object.color.x;
+    if(r >= 0.5){
+        r = 1;
+    } else{
+        r = 0;
+    }
+    var g = object.color.y;
+    if(g >= 0.5){
+        g = 1;
+    } else{
+        g = 0;
+    }
+    var b = object.color.z;
+    if(b >= 0.5){
+        b = 1;
+    } else{
+        b = 0;
+    }
+    return vec4<f32>(r, g, b, a);
 }

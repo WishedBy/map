@@ -168,7 +168,6 @@ export class MapScene implements scene {
                 vertexOffset: 0,
             }
             dataStreams.push(o)
-
         });
         let streamsGroup: RenderGroup = {
             objects: dataStreams,
