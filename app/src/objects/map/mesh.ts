@@ -49,6 +49,7 @@ export class MapMesh {
         let lonHalf = lonLength/2;
         let listVert: number[] = [];
 
+        var r = halfpi;
         let uv = (lat: number, lon: number): number[] => {
             let u: number = ((lon+lonHalf)/lonLength)
             let v: number = ((lat+halfpi)/Math.PI)
@@ -63,7 +64,6 @@ export class MapMesh {
             ]
         }
 
-        var r = halfpi;
         let stepLat = Math.PI/sizey;
         let stepLon = lonLength/sizex;
         for(let i = 0; i < sizey; i++){

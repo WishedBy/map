@@ -125,7 +125,4 @@ export class shaderConfig{
     }
 
 
-    getVerticeNo(): number{
-        return this.mesh.verticeNo
-    }
 }

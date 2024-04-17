@@ -1,3 +1,4 @@
+import { mat2, vec2 } from "gl-matrix";
 
 
 export class StreamMesh {
@@ -38,31 +39,46 @@ export class StreamMesh {
     }
 
     
-    getVertices(): number[]{
-
-        let widthOffset = 1/(((this.widthNo-1)*2)+1);
-        let lengthOffset = 1/this.lengthNo;
+    getVertices(angle: number, offset2d: vec2, length: number): number[]{
+        let width = (1/50);
+        var r = Math.PI/2;
+        let sphere = (lat: number, lon: number): number[] => {
+            return [
+                r*Math.cos(lat)*Math.cos(lon) + 0.1,
+                r*Math.cos(lat)*Math.sin(lon),
+                r*Math.sin(lat),
+            ]
+        }
+        let widthOffset = width/(((this.widthNo-1)*2)+1);
+        let lengthOffset = length/this.lengthNo;
         // vertices for line created on unit square
+        
+        let rCos = Math.cos(-angle);
+        let rSin = Math.sin(-angle);
         let verts: number[] = [];
         for(let i = 0; i < this.lengthNo; i++){
-            let x = (i*lengthOffset);
-            let xNext = (i+1)*lengthOffset;
-            // x -= 0.5;
-            // xNext -= 0.5;
+            let _x = (i*lengthOffset);
+            let _xNext = _x+lengthOffset;
             for(let j = 0; j < this.widthNo; j++){
-                let y = j*widthOffset;
-                let yNext = 1-y;
-                // y -= 0.5;
-                // yNext -= 0.5;
-                
-                // flat(2), sperical(3), coloring id(2)
-                verts.push(x, y,            0, x, y,           i, j);
-                verts.push(xNext, y,        0, xNext, y,       i, j);
-                verts.push(x, yNext,        0, x, yNext,       i, j);
+                let _y = j*widthOffset;
+                let _yNext = width-_y;
+                let x = (rCos * _x) + (rSin * _y)
+                let y = (rCos * _y) - (rSin * _x)
+                let xNext = (rCos * _xNext) + (rSin * _yNext)
+                let yNext = (rCos * _yNext) - (rSin * _xNext)
 
-                verts.push(x, yNext,        0, x, yNext,       i, j);
-                verts.push(xNext, y,        0, xNext, y,       i, j);
-                verts.push(xNext, yNext,    0, xNext, yNext,   i, j);
+                
+                
+
+
+                // flat(2), sperical(3), coloring id(2)
+                verts.push(x, y,            ...sphere(x, y),           i, j);
+                verts.push(xNext, y,        ...sphere(xNext, y),       i, j);
+                verts.push(x, yNext,        ...sphere(x, yNext),       i, j);
+
+                verts.push(x, yNext,        ...sphere(x, yNext),       i, j);
+                verts.push(xNext, y,        ...sphere(xNext, y),       i, j);
+                verts.push(xNext, yNext,    ...sphere(xNext, yNext),   i, j);
             }
         }
 

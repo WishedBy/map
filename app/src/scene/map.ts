@@ -26,7 +26,6 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
-    streamStepper: Stepper = new Stepper(StepperTimerType.Time, 1000, StepperCycleType.Restart, easeNOOP).play();
     rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
     mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
 
@@ -61,7 +60,7 @@ export class MapScene implements scene {
         }
 
         this.streams = [
-            new StreamModel(mapPosition, 
+            new StreamModel(
                 [lon2x(6.572019), lat2y(53.212365)], 
                 [lon2x(-63.583266), lat2y(-54.751260)]
             ), 
@@ -79,12 +78,11 @@ export class MapScene implements scene {
         this.observer.update();
         let a = this.rotationStepper.step();
         let b = this.mapStepper.step();
-        let c = this.streamStepper.step();
         this.maps.forEach((map) => {
             map.update(a,b);
         });
         this.streams.forEach((s) => {
-            s.update(a, c);
+            s.update(a, b);
         });
 
         
@@ -160,14 +158,16 @@ export class MapScene implements scene {
 
         
         let dataStreams: RenderObject[] = [];
-        let vertices:number[] = this.streamOpts.streamConfig.mesh.getVertices()
+        let vertices:number[] = [];
         this.streams.forEach((stream, i) => {
+            let verts = stream.getVertices();
             let o:RenderObject = { 
                 data: stream.getRenderModel(),
-                vertexNo: this.streamOpts.streamConfig.getVerticeNo(),
-                vertexOffset: 0,
+                vertexNo: stream.getVertexNo(),
+                vertexOffset: vertices.length,
             }
             dataStreams.push(o)
+            vertices.push(...verts);
         });
         let streamsGroup: RenderGroup = {
             objects: dataStreams,
