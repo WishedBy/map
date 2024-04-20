@@ -38,6 +38,8 @@ struct Fragment {
 
 const pi = 3.14159265359;
 const halfpi = pi/2;
+const r = halfpi;
+
 @vertex
 fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>, @location(2) vertexTexCoord: vec2<f32>) -> Fragment {
 
@@ -50,7 +52,6 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
         m1 = 1;
         m2 = (m*2)-1;
     }
-    var r = halfpi;
     var lon = vertexPostion[0];
     var lat = vertexPostion[1];
 

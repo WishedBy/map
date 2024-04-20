@@ -82,7 +82,6 @@ export class MapScene implements scene {
         this.observer.update();
         let a = this.rotationStepper.step();
         let b = this.sphereStepper.step();
-        b = 1;
         this.maps.forEach((map) => {
             map.update(a,b);
         });

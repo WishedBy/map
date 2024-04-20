@@ -40,10 +40,11 @@ export class StreamMesh {
     }
 
     
-    getVertices(angleRad: number, length: number, width: number): number[]{
+    getVertices(start: vec2, end: vec2, width: number): number[]{
+        let angleRad = -Math.atan2(end[1] - start[1], end[0] - start[0]);
+        let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
         
-        
-        var r = Math.PI/2;
+        var r = Math.PI/2+0.001;
         let sphere = (x: number, y: number): number[] => {
             return [
                 r*Math.cos(y)*Math.cos(x),
@@ -54,9 +55,9 @@ export class StreamMesh {
 
         let rCos = Math.cos(angleRad);
         let rSin = Math.sin(angleRad);
-        let rot = (vec: vec2): vec2 => ([
-            (rCos * vec[0]) + (rSin * vec[1]), 
-            (rCos * vec[1]) - (rSin * vec[0])
+        let position = (vec: vec2): vec2 => ([
+            (rCos * vec[0]) + (rSin * vec[1]) + start[0], 
+            (rCos * vec[1]) - (rSin * vec[0]) + start[1]
         ]);
         let chunkLength = length/this.lengthNo;
         
@@ -71,12 +72,12 @@ export class StreamMesh {
             y2 -= (width/2)
             y3 -= (width/2)
 
-            let tl = rot([x, y]) // 1
-            let tr = rot([xNext, y]) // 2
-            let mr = rot([xNext, y2]) // 3
-            let br = rot([xNext, y3]) // 4
-            let bl = rot([x, y3]) // 5
-            let ml = rot([x, y2]) // 6
+            let tl = position([x, y]) // 1
+            let tr = position([xNext, y]) // 2
+            let mr = position([xNext, y2]) // 3
+            let br = position([xNext, y3]) // 4
+            let bl = position([x, y3]) // 5
+            let ml = position([x, y2]) // 6
 
             // flat(2), sperical(3), coloring id(2)
             verts.push(tl[0], tl[1],    ...sphere(tl[0], tl[1]),   i, 1);

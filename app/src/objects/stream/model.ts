@@ -14,11 +14,10 @@ export class StreamModel {
     vertices: number[];
     // start and end in radians
     constructor(start: vec2, end: vec2){
-        this.position = [0, start[0], start[1]];
+        this.position = [0, 0, 0];
         this.model = mat4.create();
         
-        let l = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/30);
+        this.vertices = this.mesh.getVertices(start, end, 1/30);
         
     }
 
