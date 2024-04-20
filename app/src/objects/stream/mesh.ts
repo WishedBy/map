@@ -43,7 +43,7 @@ export class StreamMesh {
     getVertices(angleRad: number, length: number, width: number): number[]{
         
         
-        var r = Math.PI/2+1;
+        var r = Math.PI/2;
         let sphere = (x: number, y: number): number[] => {
             return [
                 r*Math.cos(y)*Math.cos(x),

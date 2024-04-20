@@ -59,11 +59,11 @@ export class MapMesh {
             
             return [u, v]
         }
-        let sphere = (lat: number, lon: number): number[] => {
+        let sphere = (y: number, x: number): number[] => {
             return [
-                r*Math.cos(lat)*Math.cos(lon),
-                r*Math.cos(lat)*Math.sin(lon),
-                r*Math.sin(lat),
+                r*Math.cos(y)*Math.cos(x),
+                r*Math.cos(y)*Math.sin(x),
+                r*Math.sin(y),
             ]
         }
 
