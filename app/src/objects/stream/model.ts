@@ -18,7 +18,7 @@ export class StreamModel {
         this.model = mat4.create();
         
         let l = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/40);
+        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/30);
         
     }
 
@@ -49,8 +49,8 @@ export class StreamModel {
             data.push(<number>this.model.at(i));
         }
         // color
-        data.push(0.0);
         data.push(1.0);
+        data.push(0.0);
         data.push(0.0);
 
 

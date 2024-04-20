@@ -9,7 +9,7 @@ export class StreamMesh {
 
     lengthNo = 100; // segments in length
 
-    constructor(lengthNo: number = 20) {
+    constructor(lengthNo: number = 51) {
         this.lengthNo = lengthNo;
  
         //now define the buffer layout
@@ -43,7 +43,7 @@ export class StreamMesh {
     getVertices(angleRad: number, length: number, width: number): number[]{
         
         
-        var r = Math.PI/2;
+        var r = Math.PI/2+1;
         let sphere = (x: number, y: number): number[] => {
             return [
                 r*Math.cos(y)*Math.cos(x),
@@ -91,7 +91,7 @@ export class StreamMesh {
             verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
             verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
             verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
-            
+
             verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
             verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
             verts.push(br[0], br[1],    ...sphere(br[0], br[1]),   i, 4);

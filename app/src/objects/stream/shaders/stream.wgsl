@@ -90,7 +90,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     if(center < steps){
         steps = center;
     }
-    if(center > l-steps){
+    else if(center > l-steps){
         steps = l-center;
     }
     let dist = abs(i32(colid.x) - center);

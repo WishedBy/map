@@ -27,7 +27,7 @@ export class MapScene implements scene {
     light: light = new light([-10,-10,0], 1, 0);
 
     rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
-    mapStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
+    sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
 
     vertexBbuffers: Map<string, GPUBuffer> = new Map<string, GPUBuffer>()
 
@@ -62,14 +62,18 @@ export class MapScene implements scene {
         this.streams = [
             new StreamModel(
                 [lon2x(6.572019), lat2y(53.212365)], 
-                [lon2x(-63.583266), lat2y(-54.751260)]
+                [lon2x(-63.583266), lat2y(-54.751260)],
             ), 
+            // new StreamModel(
+            //     [lon2x(-63.583266), lat2y(-54.751260)],
+            //     [lon2x(6.572019), lat2y(53.212365)], 
+            // ), 
         ];
 
 
         $(window).on("click",(e: JQuery.Event) => {
             this.rotationStepper.pause();
-            this.mapStepper.pause();
+            this.sphereStepper.pause();
         });
 
     }
@@ -77,7 +81,8 @@ export class MapScene implements scene {
 
         this.observer.update();
         let a = this.rotationStepper.step();
-        let b = this.mapStepper.step();
+        let b = this.sphereStepper.step();
+        b = 1;
         this.maps.forEach((map) => {
             map.update(a,b);
         });
