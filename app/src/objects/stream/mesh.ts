@@ -8,15 +8,13 @@ export class StreamMesh {
     bufferLayout: GPUVertexBufferLayout
 
     lengthNo = 100; // segments in length
-    widthNo = 5;  // ractangles stacked with small offset on width
 
-    constructor(widthNo: number = 5, lengthNo: number = 20) {
+    constructor(lengthNo: number = 20) {
         this.lengthNo = lengthNo;
-        this.widthNo = widthNo;
  
         //now define the buffer layout
         this.bufferLayout = {
-            arrayStride: 7*4,
+            arrayStride: this.getVertexPartCount()*4,
             attributes: [
                 {
                     shaderLocation: 0,
@@ -37,17 +35,20 @@ export class StreamMesh {
         };
 
     }
+    getVertexPartCount(): number {
+        return 7;
+    }
 
     
     getVertices(angleRad: number, length: number, width: number): number[]{
         
         
         var r = Math.PI/2;
-        let sphere = (lat: number, lon: number): number[] => {
+        let sphere = (x: number, y: number): number[] => {
             return [
-                r*Math.cos(lat)*Math.cos(lon) + 0.1,
-                r*Math.cos(lat)*Math.sin(lon),
-                r*Math.sin(lat),
+                r*Math.cos(y)*Math.cos(x),
+                r*Math.cos(y)*Math.sin(x),
+                r*Math.sin(y),
             ]
         }
 
@@ -57,32 +58,44 @@ export class StreamMesh {
             (rCos * vec[0]) + (rSin * vec[1]), 
             (rCos * vec[1]) - (rSin * vec[0])
         ]);
-        let chunkWidth = width/(((this.widthNo-1)*2)+1);
         let chunkLength = length/this.lengthNo;
         
         let verts: number[] = [];
         for(let i = 0; i < this.lengthNo; i++){
             let x = (i*chunkLength);
             let xNext = x+chunkLength;
-            for(let j = 0; j < this.widthNo; j++){
-                let y = j*chunkWidth;
-                y -= (width/2)
-                let yNext = y+chunkWidth;
+            let y = 0;
+            let y2 = width/2;
+            let y3 = width;
+            y -= (width/2)
+            y2 -= (width/2)
+            y3 -= (width/2)
 
-                let tl = rot([x, y])
-                let tr = rot([xNext, y])
-                let bl = rot([x, yNext])
-                let br = rot([xNext, yNext])
+            let tl = rot([x, y]) // 1
+            let tr = rot([xNext, y]) // 2
+            let mr = rot([xNext, y2]) // 3
+            let br = rot([xNext, y3]) // 4
+            let bl = rot([x, y3]) // 5
+            let ml = rot([x, y2]) // 6
 
-                // flat(2), sperical(3), coloring id(2)
-                verts.push(tl[0], tl[1],    ...sphere(x, y),           i, j);
-                verts.push(tr[0], tr[1],    ...sphere(xNext, y),       i, j);
-                verts.push(bl[0], bl[1],    ...sphere(x, yNext),       i, j);
+            // flat(2), sperical(3), coloring id(2)
+            verts.push(tl[0], tl[1],    ...sphere(tl[0], tl[1]),   i, 1);
+            verts.push(tr[0], tr[1],    ...sphere(tr[0], tr[1]),   i, 2);
+            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
 
-                verts.push(bl[0], bl[1],    ...sphere(x, yNext),       i, j);
-                verts.push(tr[0], tr[1],    ...sphere(xNext, y),       i, j);
-                verts.push(br[0], br[1],    ...sphere(xNext, yNext),   i, j);
-            }
+            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
+            verts.push(tr[0], tr[1],    ...sphere(tr[0], tr[1]),   i, 2);
+            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
+
+
+            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
+            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
+            verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
+            
+            verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
+            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
+            verts.push(br[0], br[1],    ...sphere(br[0], br[1]),   i, 4);
+            
         }
 
         this.vertices = verts;

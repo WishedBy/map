@@ -29,6 +29,8 @@ export class Renderer {
     depthStencilView!: GPUTextureView;
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
 
+    multisampleTexture!:GPUTexture;
+
     sampleCount = 1;
 
 
@@ -146,15 +148,23 @@ export class Renderer {
         let reslvTarget: GPUTextureView|null = null;
         let renderView: GPUTextureView = canvasTextureView;
         if(this.sampleCount > 1){
-            let multisampleTexture = this.device.createTexture({
-                format: canvasTexture.format,
-                usage: GPUTextureUsage.RENDER_ATTACHMENT,
-                size: [canvasTexture.width, canvasTexture.height],
-                sampleCount: this.sampleCount,
-            });
+            if (!this.multisampleTexture || (
+                this.multisampleTexture.width !== canvasTexture.width ||
+                this.multisampleTexture.height !== canvasTexture.height)
+            ) {
+                if (this.multisampleTexture) {
+                    this.multisampleTexture.destroy();
+                }
+                this.multisampleTexture = this.device.createTexture({
+                    format: canvasTexture.format,
+                    usage: GPUTextureUsage.RENDER_ATTACHMENT,
+                    size: [canvasTexture.width, canvasTexture.height],
+                    sampleCount: this.sampleCount,
+                });
+            }
 
             reslvTarget = canvasTextureView
-            renderView = multisampleTexture.createView()
+            renderView = this.multisampleTexture.createView()
         }
         
         //renderpass: holds draw commands, allocated from command encoder
@@ -182,12 +192,12 @@ export class Renderer {
                 let buffer = this.device.createBuffer({
                     size: bsize,
                     usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                    mappedAtCreation: true
                 });
-                new Float32Array(buffer.getMappedRange()).set(d.data);
+                
+                this.device.queue.writeBuffer(buffer, 0, <ArrayBuffer>d.data);
                 buffer.unmap();
                 renderpass.setBindGroup(0, group.getBindGroup(buffer));
-                renderpass.draw(d.vertexNo, undefined, d.vertexOffset);
+                renderpass.draw(d.vertexNo, 1, d.vertexOffset);
             }
         }
         renderpass.end();

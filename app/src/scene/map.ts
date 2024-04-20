@@ -1,5 +1,5 @@
 
-import { vec3,mat4 } from "gl-matrix";
+import { vec3,mat4, vec2 } from "gl-matrix";
 import { Camera } from "../camera/camera";
 import { MapModel } from "../objects/map/model";
 import { RenderData, RenderGroup, RenderObject } from "./renderData";
@@ -164,7 +164,7 @@ export class MapScene implements scene {
             let o:RenderObject = { 
                 data: stream.getRenderModel(),
                 vertexNo: stream.getVertexNo(),
-                vertexOffset: vertices.length,
+                vertexOffset: vertices.length/stream.getVertexPartCount(),
             }
             dataStreams.push(o)
             vertices.push(...verts);

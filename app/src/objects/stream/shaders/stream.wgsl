@@ -15,7 +15,6 @@ struct model {
     streamPos: f32,
     animationMod: f32,
     lengthNo: f32,
-    widthNo: f32,
     fadeSteps: f32,
 };
 
@@ -29,9 +28,13 @@ struct model {
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
-    @location(0) @interpolate(flat) ColID : vec2<u32>,
+    @location(0) @interpolate(linear) Color : vec4<f32>,
 
 };
+
+// const alphaTable = array<f32, 0>(
+
+// );
 
 const pi = 3.14159265359;
 const halfpi = pi/2;
@@ -76,9 +79,36 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     npos = transformer.projection * transformer.view * npos;
    
     output.Position = npos;
-    output.ColID = vec2<u32>(colid);
+
+    
+    let l: i32 = i32(object.lengthNo);
+    var steps: i32 = i32(object.fadeSteps);
+    var sp: f32 = object.streamPos;
+    var center = i32(round(f32(l)*sp));
 
 
+    if(center < steps){
+        steps = center;
+    }
+    if(center > l-steps){
+        steps = l-center;
+    }
+    let dist = abs(i32(colid.x) - center);
+
+    let gradStepL: f32 = 1.0/f32(steps);
+    var a = 0.0;
+
+    if(colid.y == 3 || colid.y == 6){
+        a = max(1.0-(f32(dist)*gradStepL), 0.0);
+        if(i32(colid.x) <= center && colid.y == 6){
+            a -= gradStepL;
+        }
+        else if(i32(colid.x) >= center && colid.y == 3){
+            a -= gradStepL;
+        }
+    }
+ 
+    output.Color = vec4<f32>(object.color, a);
 
     return output;
 }
@@ -86,37 +116,5 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
 
-    let w: f32 = object.widthNo;
-    let l: f32 = object.lengthNo;
-    var steps: f32 = object.fadeSteps;
-
-    var center = i32(round(l*object.streamPos));
-    if(f32(center) < steps){
-        steps = f32(center);
-    }
-    if(f32(center) > l-steps){
-        steps = l-f32(center);
-    }
-    let dist = abs(i32(frag.ColID.x) - center);
-    let gradStepL: f32 = 1.0/steps;
-    var a = max(1.0-(f32(dist)*gradStepL), 0.0)*0.5;
-    var r = object.color.x;
-    if(r >= 0.5){
-        r = 1;
-    } else{
-        r = 0;
-    }
-    var g = object.color.y;
-    if(g >= 0.5){
-        g = 1;
-    } else{
-        g = 0;
-    }
-    var b = object.color.z;
-    if(b >= 0.5){
-        b = 1;
-    } else{
-        b = 0;
-    }
-    return vec4<f32>(r, g, b, a);
+    return frag.Color;
 }

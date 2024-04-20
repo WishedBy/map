@@ -18,7 +18,7 @@ export class StreamModel {
         this.model = mat4.create();
         
         let l = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/50);
+        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/40);
         
     }
 
@@ -34,8 +34,13 @@ export class StreamModel {
     getVertices(): number[] {
         return this.vertices
     }
+
+    getVertexPartCount(): number {
+        return this.mesh.getVertexPartCount();
+    }
+
     getVertexNo(): number {
-        return this.vertices.length/7
+        return this.vertices.length/this.getVertexPartCount()
     }
 
     getRenderModel():Float32Array {
@@ -52,8 +57,7 @@ export class StreamModel {
         data.push(this.streamPos);
         data.push(this.animationMod);
         data.push(this.mesh.lengthNo);
-        data.push(this.mesh.widthNo);
-        data.push(20);
+        data.push(10);
 
         return new Float32Array(data);
     }

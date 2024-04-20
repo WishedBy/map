@@ -14,7 +14,7 @@ export class MapMesh {
  
         //now define the buffer layout
         this.bufferLayout = {
-            arrayStride: 7*4,
+            arrayStride: this.getVertexPartCount()*4,
             attributes: [
                 {
                     shaderLocation: 0,
@@ -34,6 +34,9 @@ export class MapMesh {
             ]
         }
 
+    }
+    getVertexPartCount(): number {
+        return 7;
     }
 
     getVertices(mod:number = 1): number[]{
