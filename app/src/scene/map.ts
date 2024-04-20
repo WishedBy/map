@@ -17,8 +17,16 @@ type streamOpts = {
     streamConfig: StreamShaderConfig
 }
 
+export class State {
+    leftMousePressed: boolean = false;
+    mousePosStart: vec2 = [0,0]
+    mousePosCurrent: vec2 = [0,0]
+    mousePosLast: vec2 = [0,0]
+}
+
 export class MapScene implements scene {
     device: GPUDevice
+    state: State
     mapOpts: mapOpts
     streamOpts: streamOpts
     maps: MapModel[];
@@ -27,13 +35,14 @@ export class MapScene implements scene {
     light: light = new light([-10,-10,0], 1, 0);
 
     rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
-    sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble);
+    sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble, false, true);
 
     vertexBbuffers: Map<string, GPUBuffer> = new Map<string, GPUBuffer>()
 
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material) {
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, state: State) {
         this.device = device
+        this.state = state
         this.mapOpts = {
             mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial, mapMaterialDark)
         };
@@ -71,9 +80,8 @@ export class MapScene implements scene {
         ];
 
 
-        $(window).on("click",(e: JQuery.Event) => {
-            this.rotationStepper.pause();
-            this.sphereStepper.pause();
+        $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
+            this.sphereStepper.play();
         });
 
     }
@@ -82,14 +90,27 @@ export class MapScene implements scene {
         this.observer.update();
         let a = this.rotationStepper.step();
         let b = this.sphereStepper.step();
+        // b = 1;
         this.maps.forEach((map) => {
+            if(this.state.leftMousePressed){
+                let dx = this.state.mousePosCurrent[0] - this.state.mousePosLast[0];
+                let dy = this.state.mousePosCurrent[1] - this.state.mousePosLast[1];
+                
+                map.setRotation(0, map.yAngle + (dy/500)*-1, map.xAngle + (dx/500));
+            }
             map.update(a,b);
         });
         this.streams.forEach((s) => {
+            if(this.state.leftMousePressed){
+                let dx = this.state.mousePosCurrent[0] - this.state.mousePosLast[0];
+                let dy = this.state.mousePosCurrent[1] - this.state.mousePosLast[1];
+                
+                s.setRotation(0, s.yAngle + (dy/500)*-1, s.xAngle + (dx/500));
+            }
             s.update(a, b);
         });
 
-        
+        this.state.mousePosLast = this.state.mousePosCurrent
     }
 
     getLight(): light {

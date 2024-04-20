@@ -39,11 +39,21 @@ export class StreamMesh {
         return 7;
     }
 
+
     
     getVertices(start: vec2, end: vec2, width: number): number[]{
         let angleRad = -Math.atan2(end[1] - start[1], end[0] - start[0]);
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
+
+        let getBearing = (a: vec2, b: vec2): number => {
+            let y = Math.sin(b[0] - a[0]) * Math.cos(b[1]);
+            let x = Math.cos(a[1]) * Math.sin(b[1]) -
+                  Math.sin(a[1]) * Math.cos(b[1]) * Math.cos(b[0] - a[0]);
+            return Math.atan2(y, x);
+        }
         
+        let bearing = getBearing(start, end);
+        console.log(angleRad, bearing);
         var r = Math.PI/2+0.001;
         let sphere = (x: number, y: number): number[] => {
             return [
@@ -53,8 +63,8 @@ export class StreamMesh {
             ]
         }
 
-        let rCos = Math.cos(angleRad);
-        let rSin = Math.sin(angleRad);
+        let rCos = Math.cos(bearing);
+        let rSin = Math.sin(bearing);
         let position = (vec: vec2): vec2 => ([
             (rCos * vec[0]) + (rSin * vec[1]) + start[0], 
             (rCos * vec[1]) - (rSin * vec[0]) + start[1]
