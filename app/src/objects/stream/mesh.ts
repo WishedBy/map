@@ -1,16 +1,16 @@
-import { mat2, vec2 } from "gl-matrix";
+import { rm } from "fs";
+import { mat2, mat3, vec2 } from "gl-matrix";
 
 
 export class StreamMesh {
 
     vertices!: number[]
     bufferLayout: GPUVertexBufferLayout
-    verticeNo: number = 0;
 
     lengthNo = 100; // segments in length
     widthNo = 5;  // ractangles stacked with small offset on width
 
-    constructor(widthNo: number = 5, lengthNo: number = 100) {
+    constructor(widthNo: number = 5, lengthNo: number = 20) {
         this.lengthNo = lengthNo;
         this.widthNo = widthNo;
  
@@ -39,8 +39,9 @@ export class StreamMesh {
     }
 
     
-    getVertices(angle: number, offset2d: vec2, length: number): number[]{
-        let width = (1/50);
+    getVertices(angleRad: number, length: number, width: number): number[]{
+        
+        
         var r = Math.PI/2;
         let sphere = (lat: number, lon: number): number[] => {
             return [
@@ -49,41 +50,41 @@ export class StreamMesh {
                 r*Math.sin(lat),
             ]
         }
-        let widthOffset = width/(((this.widthNo-1)*2)+1);
-        let lengthOffset = length/this.lengthNo;
-        // vertices for line created on unit square
+
+        let rCos = Math.cos(angleRad);
+        let rSin = Math.sin(angleRad);
+        let rot = (vec: vec2): vec2 => ([
+            (rCos * vec[0]) + (rSin * vec[1]), 
+            (rCos * vec[1]) - (rSin * vec[0])
+        ]);
+        let chunkWidth = width/(((this.widthNo-1)*2)+1);
+        let chunkLength = length/this.lengthNo;
         
-        let rCos = Math.cos(-angle);
-        let rSin = Math.sin(-angle);
         let verts: number[] = [];
         for(let i = 0; i < this.lengthNo; i++){
-            let _x = (i*lengthOffset);
-            let _xNext = _x+lengthOffset;
+            let x = (i*chunkLength);
+            let xNext = x+chunkLength;
             for(let j = 0; j < this.widthNo; j++){
-                let _y = j*widthOffset;
-                let _yNext = width-_y;
-                let x = (rCos * _x) + (rSin * _y)
-                let y = (rCos * _y) - (rSin * _x)
-                let xNext = (rCos * _xNext) + (rSin * _yNext)
-                let yNext = (rCos * _yNext) - (rSin * _xNext)
+                let y = j*chunkWidth;
+                y -= (width/2)
+                let yNext = y+chunkWidth;
 
-                
-                
-
+                let tl = rot([x, y])
+                let tr = rot([xNext, y])
+                let bl = rot([x, yNext])
+                let br = rot([xNext, yNext])
 
                 // flat(2), sperical(3), coloring id(2)
-                verts.push(x, y,            ...sphere(x, y),           i, j);
-                verts.push(xNext, y,        ...sphere(xNext, y),       i, j);
-                verts.push(x, yNext,        ...sphere(x, yNext),       i, j);
+                verts.push(tl[0], tl[1],    ...sphere(x, y),           i, j);
+                verts.push(tr[0], tr[1],    ...sphere(xNext, y),       i, j);
+                verts.push(bl[0], bl[1],    ...sphere(x, yNext),       i, j);
 
-                verts.push(x, yNext,        ...sphere(x, yNext),       i, j);
-                verts.push(xNext, y,        ...sphere(xNext, y),       i, j);
-                verts.push(xNext, yNext,    ...sphere(xNext, yNext),   i, j);
+                verts.push(bl[0], bl[1],    ...sphere(x, yNext),       i, j);
+                verts.push(tr[0], tr[1],    ...sphere(xNext, y),       i, j);
+                verts.push(br[0], br[1],    ...sphere(xNext, yNext),   i, j);
             }
         }
 
-
-        this.verticeNo = verts.length/7;
         this.vertices = verts;
         return this.vertices;
     }

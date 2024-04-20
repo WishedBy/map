@@ -123,10 +123,7 @@ export class Renderer {
 
         //make transforms
         const projection = mat4.create();
-        // load perspective projection into the projection matrix,
-        // Field of view = 45 degrees (pi/4)
-        // near = 0.1, far = 10 
-        mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, 100);
+        mat4.perspective(projection, Math.PI/4, this.canvas.width/this.canvas.height, 0.1, Infinity);
 
 
         this.scene.update()

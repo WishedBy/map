@@ -43,7 +43,7 @@ export class MapScene implements scene {
 
 
         this.observer = new Camera(
-            [-4, 0, 0], [0, 0, 0], [0, 0, -1]
+            [-5, 0, 0], [0, 0, 0], [0, 0, -1]
         );
         let mapPosition: vec3 = [0,0,0];
         this.maps = [

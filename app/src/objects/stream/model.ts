@@ -18,7 +18,7 @@ export class StreamModel {
         this.model = mat4.create();
         
         let l = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        this.vertices = this.mesh.getVertices(Math.atan2(end[1] - start[1], end[0] - start[0]), start, l);
+        this.vertices = this.mesh.getVertices(-Math.atan2(end[1] - start[1], end[0] - start[0]), l, 1/50);
         
     }
 
@@ -27,7 +27,6 @@ export class StreamModel {
         this.model = mat4.create();
         
         this.streamPos = this.streamStepper.step();
-        this.streamPos = 0.5;
         mat4.translate(this.model, this.model, this.position);
         mat4.rotate(this.model, this.model, rotate*Math.PI*2, [0,0,1]);
     }
