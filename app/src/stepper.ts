@@ -42,7 +42,7 @@ export class Stepper{
     lastT: number = 0;
     cycleBack: boolean = false;
     lastTRes: number = 0;
-
+    lastDiff: number = 0;
 
     constructor(
         timerType:StepperTimerType, 
@@ -147,17 +147,11 @@ export class Stepper{
                 return 1;
             }else{
                 t = 0;
+                this.startTime = Date.now();
             }
         }
 
-        if(t > 0.999999){
-            this.startTime = Date.now();
-            t = 1;
-        }
-        if(t < 0.000001){
-            this.startTime = Date.now();
-            t = 0;
-        }
+
 
         
         if(t == 1 || t == 0){

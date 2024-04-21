@@ -44,7 +44,7 @@ export class StreamMesh {
         let deg90 = 90*Math.PI/180;
         let angleRad = Math.atan2(end[1] - start[1], end[0] - start[0]);
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        var r = Math.PI/2+0.001;
+        var r = (Math.PI/2)+0.1;
 
         let getBearing = (a: vec2, b: vec2): number => {
             let y = Math.sin(b[0] - a[0]) * Math.cos(b[1]);

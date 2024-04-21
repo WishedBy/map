@@ -34,12 +34,13 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
-    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 30000, StepperCycleType.Restart, easeNOOP, true).play();
+    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true).play();
     sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 3000, StepperCycleType.Reverse, easeInOutCubicDouble, false, true);
 
     vertexBbuffers: Map<string, GPUBuffer> = new Map<string, GPUBuffer>()
 
     rotateLast: vec3 = [0,0,0]
+
 
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, state: State) {
@@ -92,20 +93,27 @@ export class MapScene implements scene {
         this.observer.update();
         let a = this.rotationStepper.step();
         let b = this.sphereStepper.step();
+        let rotationPauseCount = 0
         // b = 1;
+        if((((a == 0 || a == 1) && this.rotationStepper.playing()) || !this.rotationStepper.playing()) && b < 0.3){
+            rotationPauseCount++;
+        }
 
         let rotate = this.rotateLast;
 
         if(this.state.leftMousePressed){
             if(this.rotationStepper.playing()){
-                this.rotationStepper.pause();
+                rotationPauseCount++;
             }
             rotate[1] += (this.state.mousePosCurrent[1] - this.state.mousePosLast[1])/100;
             rotate[2] += -1 * (this.state.mousePosCurrent[0] - this.state.mousePosLast[0]) / 100;
-        }else{
-            if(!this.rotationStepper.playing()){
-                this.rotationStepper.pause();
-            }
+        }
+
+        
+        if(rotationPauseCount > 0 && this.rotationStepper.playing()){
+            this.rotationStepper.pause();
+        }else if(rotationPauseCount == 0 && !this.rotationStepper.playing()){
+            this.rotationStepper.play();
         }
 
         this.maps.forEach((map) => {

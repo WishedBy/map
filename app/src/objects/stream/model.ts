@@ -20,7 +20,7 @@ export class StreamModel {
     vertices: number[];
     // start and end in radians
     constructor(start: vec2, end: vec2){
-        this.position = [-0.1, 0, 0];
+        this.position = [0, 0, 0];
         this.model = mat4.create();
         
         this.vertices = this.mesh.getVertices(start, end, 1/30);

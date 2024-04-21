@@ -71,6 +71,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
         z = (1-m2)*pos.z + vertexPostionSphere.z*m2;
         y = ((1-m1)*pos.y) + (y);
     }
+    x -= 0.1 * (1-m1);
   
     var npos = vec4<f32>(x, y, z, 1.0);
 
