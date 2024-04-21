@@ -34,12 +34,12 @@ export class shaderConfig{
             entries: [
                 {
                     binding: 0,
-                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    visibility: GPUShaderStage.VERTEX,
                     buffer: {}
                 },
                 {
                     binding: 1,
-                    visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT,
+                    visibility: GPUShaderStage.VERTEX,
                     buffer: {
                         type: "read-only-storage" as GPUBufferBindingType
                     }

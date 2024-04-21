@@ -33,5 +33,5 @@ export async function main(canvas: HTMLCanvasElement ){
     })
 
     await renderer.Initialize();
-    renderer.render();
+    renderer.run();
 }

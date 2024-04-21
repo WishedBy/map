@@ -6,7 +6,7 @@ export class MapMesh {
     bufferLayout: GPUVertexBufferLayout
     verticeNo: number = 0;
 
-    maxSize = 1000; 
+    maxSize = 200; 
     lastSize = 0; 
 
     constructor() {
@@ -77,13 +77,13 @@ export class MapMesh {
                 let nextlon = ((j+1)*stepLon)-lonHalf;
 
                 listVert.push(lon, lat, ...sphere(lat, lon), ...uv(lat, lon));
-                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, lon));
-                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(lat, lon));
+                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, nextlon));
+                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(nextlat, lon));
 
                 // bottom right triangle
-                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(lat, lon));
-                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, lon));
-                listVert.push(nextlon, nextlat, ...sphere(nextlat, nextlon), ...uv(lat, lon));
+                listVert.push(lon, nextlat, ...sphere(nextlat, lon), ...uv(nextlat, lon));
+                listVert.push(nextlon, lat, ...sphere(lat, nextlon), ...uv(lat, nextlon));
+                listVert.push(nextlon, nextlat, ...sphere(nextlat, nextlon), ...uv(nextlat, nextlon));
 
 
             }

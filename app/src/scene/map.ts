@@ -102,9 +102,7 @@ export class MapScene implements scene {
         let rotate = this.rotateLast;
 
         if(this.state.leftMousePressed){
-            if(this.rotationStepper.playing()){
-                rotationPauseCount++;
-            }
+            rotationPauseCount++;
             rotate[1] += (this.state.mousePosCurrent[1] - this.state.mousePosLast[1])/100;
             rotate[2] += -1 * (this.state.mousePosCurrent[0] - this.state.mousePosLast[0]) / 100;
         }

@@ -33,6 +33,8 @@ export class Renderer {
 
     sampleCount = 1;
 
+    running = true;
+
 
     constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer) => scene){
         this.canvas = canvas;
@@ -75,7 +77,12 @@ export class Renderer {
     }
 
 
-    
+    run = () => {
+        this.render();
+        if(this.running){
+            requestAnimationFrame(this.run)
+        }
+    }
         
 
     async makeDepthBufferResources() {
@@ -204,7 +211,6 @@ export class Renderer {
     
         this.device.queue.submit([commandEncoder.finish()]);
 
-        requestAnimationFrame(this.render);
     }
     
 }

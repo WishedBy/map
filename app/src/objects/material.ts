@@ -27,7 +27,7 @@ export class Material {
                 height: imageData.height
             },
             format: "rgba8unorm",
-            usage: 22
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
         };
         const viewDescriptor: GPUTextureViewDescriptor = {
             format: "rgba8unorm",

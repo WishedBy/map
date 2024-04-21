@@ -87,7 +87,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     output.Position = pos;
     output.TexCoord = vertexTexCoord;
 
-    output.Normal = n.xyz;
+    output.Normal = normalize(n.xyz);
 
 
     return output;
@@ -98,14 +98,13 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let col1 = textureSample(myTexture, mySampler, frag.TexCoord);
     let col2 = textureSample(myTextureDark, mySamplerDark, frag.TexCoord);
 
-    let vNormal = normalize(frag.Normal);
     
     let diffuseLightStrength = transformer.light.diffuseStrength;
     let ambientLightIntensity = transformer.light.ambientIntensity;
 
 
     let lightDir = normalize(transformer.light.lightPosition - frag.vPos.xyz);
-    let lightMagnitude = dot(vNormal, lightDir);
+    let lightMagnitude = dot(frag.Normal, lightDir);
 
     let diffuseLightFinal: f32 = diffuseLightStrength * max(lightMagnitude, 0);
     var lightFinal = diffuseLightFinal + ambientLightIntensity;
