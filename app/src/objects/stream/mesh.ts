@@ -92,8 +92,8 @@ export class StreamMesh {
 
         let chunkLength = length/this.lengthNo;
         let chunkDist = dist/this.lengthNo;
-        let angleCWRad = (angleRad + deg90) % (Math.PI*2);
-        let angleCCWRad = (angleRad - deg90) % (Math.PI*2);
+        let angleCWRad = (angleRad - deg90) % (Math.PI*2);
+        let angleCCWRad = (angleRad + deg90) % (Math.PI*2);
 
         let lastPos: vec2 = start;
         let lastPosGC: vec2 = start;
@@ -165,22 +165,26 @@ export class StreamMesh {
             */
 
             // flat(2), sperical(3), coloring id(2)
-            verts.push(lt[0], lt[1],    ...sphere(ltGC),   i, 1);
-            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
-            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4);
+            verts.push(lt[0], lt[1],    ...sphere(ltGC),   i, 1); 
+            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2); 
+            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4); 
 
-            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4);
+            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4); 
             verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
+            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5); 
+
+
+
+
+            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
+            verts.push(rb[0], rb[1],    ...sphere(rbGC),   i, 6);
             verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
 
-
             verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
-            verts.push(rt[0], rt[1],    ...sphere(rtGC),   i, 3);
-            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
-
-            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
             verts.push(rt[0], rt[1],    ...sphere(rtGC),   i, 3);
             verts.push(rb[0], rb[1],    ...sphere(rbGC),   i, 6);
+
+
 
             lastPos = nextPos;
             lastPosGC = nextPosGC;

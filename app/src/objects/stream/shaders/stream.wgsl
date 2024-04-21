@@ -106,6 +106,29 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
         else if(i32(colid.x) >= center && colid.y == 5){
             a -= gradStepL;
         }
+        
+    }
+
+    // if(colid.y >= 1 && i32(colid.x) <= center){
+    //     a = max(1.0-(f32(dist)*gradStepL), 0.0);
+    //     if(colid.y == 1){
+    //         a -= gradStepL;
+    //     }
+    // }else if(colid.y != 1 && i32(colid.x) >= center){
+    //     a = max(1.0-(f32(dist)*gradStepL), 0.0);
+    //     if(colid.y == 0){
+    //         a -= gradStepL;
+    //     }
+    // }
+    var col = vec3<f32>(0,0,0);
+    if(colid.y == 0){
+        col.x = 1;
+    }
+    if(colid.y == 1){
+        col.y = 1;
+    }
+    if(colid.y == 2){
+        col.z = 1;
     }
  
     output.Color = vec4<f32>(object.color, a);
