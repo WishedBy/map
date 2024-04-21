@@ -34,10 +34,12 @@ export class MapScene implements scene {
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
-    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 5000, StepperCycleType.Restart, easeNOOP, true);
-    sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 7000, StepperCycleType.Reverse, easeInOutCubicDouble, false, true);
+    rotationStepper: Stepper = new Stepper(StepperTimerType.Time, 30000, StepperCycleType.Restart, easeNOOP, true).play();
+    sphereStepper: Stepper = new Stepper(StepperTimerType.Time, 3000, StepperCycleType.Reverse, easeInOutCubicDouble, false, true);
 
     vertexBbuffers: Map<string, GPUBuffer> = new Map<string, GPUBuffer>()
+
+    rotateLast: vec3 = [0,0,0]
 
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, state: State) {
@@ -91,25 +93,31 @@ export class MapScene implements scene {
         let a = this.rotationStepper.step();
         let b = this.sphereStepper.step();
         // b = 1;
-        this.maps.forEach((map) => {
-            if(this.state.leftMousePressed){
-                let dx = this.state.mousePosCurrent[0] - this.state.mousePosLast[0];
-                let dy = this.state.mousePosCurrent[1] - this.state.mousePosLast[1];
-                
-                map.setRotation(0, map.yAngle + (dy/500)*-1, map.xAngle + (dx/500));
+
+        let rotate = this.rotateLast;
+
+        if(this.state.leftMousePressed){
+            if(this.rotationStepper.playing()){
+                this.rotationStepper.pause();
             }
+            rotate[1] += (this.state.mousePosCurrent[1] - this.state.mousePosLast[1])/100;
+            rotate[2] += -1 * (this.state.mousePosCurrent[0] - this.state.mousePosLast[0]) / 100;
+        }else{
+            if(!this.rotationStepper.playing()){
+                this.rotationStepper.pause();
+            }
+        }
+
+        this.maps.forEach((map) => {
+            map.setRotation(rotate[0], rotate[1], rotate[2]);
             map.update(a,b);
         });
         this.streams.forEach((s) => {
-            if(this.state.leftMousePressed){
-                let dx = this.state.mousePosCurrent[0] - this.state.mousePosLast[0];
-                let dy = this.state.mousePosCurrent[1] - this.state.mousePosLast[1];
-                
-                s.setRotation(0, s.yAngle + (dy/500)*-1, s.xAngle + (dx/500));
-            }
+            s.setRotation(rotate[0], rotate[1], rotate[2]);
             s.update(a, b);
         });
 
+        this.rotateLast = rotate
         this.state.mousePosLast = this.state.mousePosCurrent
     }
 
@@ -174,12 +182,6 @@ export class MapScene implements scene {
             vertexBuffer: this.getVertexBuffer(mapv, "map"),
         }
         res.groups.push(mapGroup)
-
-
-
-
-
-        
 
         
         let dataStreams: RenderObject[] = [];

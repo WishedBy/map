@@ -1,5 +1,5 @@
 import { rm } from "fs";
-import { mat2, mat3, vec2 } from "gl-matrix";
+import { mat2, mat3, vec2, vec3 } from "gl-matrix";
 
 
 export class StreamMesh {
@@ -41,9 +41,135 @@ export class StreamMesh {
 
 
     
+    // getVertices(start: vec2, end: vec2, width: number): number[]{
+    //     let angleRad = -Math.atan2(end[1] - start[1], end[0] - start[0]);
+    //     let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
+    //     var r = Math.PI/2+0.001;
+
+    //     let getBearing = (a: vec2, b: vec2): number => {
+    //         let y = Math.sin(b[0] - a[0]) * Math.cos(b[1]);
+    //         let x = Math.cos(a[1]) * Math.sin(b[1]) -
+    //               Math.sin(a[1]) * Math.cos(b[1]) * Math.cos(b[0] - a[0]);
+    //         return Math.atan2(y, x);
+    //     }
+    //     let gcd = (start: vec2, end: vec2): number => {
+    //         let lon1 = start[0];
+    //         let lon2 = end[0];
+    //         let lat1 = -start[1];
+    //         let lat2 = -end[1];
+    //         let lonDelta = lon2 - lon1;
+    //         var a = Math.pow(Math.cos(lat2) * Math.sin(lonDelta) , 2) + Math.pow(Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lonDelta) , 2);
+    //         var b = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lonDelta);
+            
+    //         return Math.atan2(Math.sqrt(a) , b) * r;
+    //     }
+
+    //     let bearing = getBearing([start[0], -start[1]], [end[0], -end[1]]);
+    //     let gcPosition = (start: vec2, d: number): vec2 => {
+    //         let startX = start[0];
+    //         let startY = -start[1];
+    //         let dr = d/r;
+    //         let y = (Math.asin( Math.sin(startY)*Math.cos(dr) + Math.cos(startY)*Math.sin(dr)*Math.cos(bearing)));
+
+    //         let x = (startX + Math.atan2(Math.sin(bearing)*Math.sin(dr)*Math.cos(startY), Math.cos(dr)-Math.sin(startY)*Math.sin(y)));
+    //         return [x, -y]
+    //     }
+        
+    //     let sphere = (pos: vec2): number[] => {
+    //         let x = pos[0];
+    //         let y = pos[1];
+    //         return [
+    //             r*Math.cos(y)*Math.cos(x),
+    //             r*Math.cos(y)*Math.sin(x),
+    //             r*Math.sin(y),
+    //         ]
+    //     }
+    //     let dist = gcd(start, end);
+    //     console.log(angleRad, bearing, dist);
+
+    //     let rCos = Math.cos(bearing);
+    //     let rSin = Math.sin(bearing);
+    //     let position = (vec: vec2): vec2 => ([
+    //         (rCos * vec[0]) + (rSin * vec[1]) + start[0], 
+    //         (rCos * vec[1]) - (rSin * vec[0]) + start[1]
+    //     ]);
+    //     let chunkLength = length/this.lengthNo;
+
+    //     let distp = dist/this.lengthNo;
+    //     let verts: number[] = [];
+
+
+    //     let tlGCDPrev: vec2 = [start[0]-0.1, start[1]]
+    //     let trGCDPrev: vec2 = [start[0]+0.1, start[1]]
+    //     let mrGCDPrev: vec2 = [start[0]+0.1, start[1]]
+    //     let brGCDPrev: vec2 = [start[0]+0.1, start[1]]
+    //     let blGCDPrev: vec2 = [start[0]-0.1, start[1]]
+    //     let mlGCDPrev: vec2 = [start[0]-0.1, start[1]]
+
+
+    //     for(let i = 0; i < this.lengthNo; i++){
+    //         let x = (i*chunkLength);
+    //         let xNext = x+chunkLength;
+    //         let y = 0;
+    //         let y2 = width/2;
+    //         let y3 = width;
+    //         y -= (width/2)
+    //         y2 -= (width/2)
+    //         y3 -= (width/2)
+
+    //         let d = distp
+    //         if(i == 0){
+    //             d = 0;
+    //         }
+    //         let tl = position([x, y]) // 1
+    //         let tr = position([xNext, y]) // 2
+    //         let mr = position([xNext, y2]) // 3
+    //         let br = position([xNext, y3]) // 4
+    //         let bl = position([x, y3]) // 5
+    //         let ml = position([x, y2]) // 6
+    //         let tlGCD = gcPosition(tlGCDPrev, d);
+    //         let trGCD = gcPosition(trGCDPrev, d);
+    //         let mrGCD = gcPosition(mrGCDPrev, d);
+    //         let brGCD = gcPosition(brGCDPrev, d);
+    //         let blGCD = gcPosition(blGCDPrev, d);
+    //         let mlGCD = gcPosition(mlGCDPrev, d);
+    //         console.log(mlGCD, mrGCD)
+
+    //         // flat(2), sperical(3), coloring id(2)
+    //         verts.push(tl[0], tl[1],    ...sphere(tlGCD),   i, 1);
+    //         verts.push(tr[0], tr[1],    ...sphere(trGCD),   i, 2);
+    //         verts.push(ml[0], ml[1],    ...sphere(mlGCD),   i, 6);
+
+    //         verts.push(ml[0], ml[1],    ...sphere(mlGCD),   i, 6);
+    //         verts.push(tr[0], tr[1],    ...sphere(trGCD),   i, 2);
+    //         verts.push(mr[0], mr[1],    ...sphere(mrGCD),   i, 3);
+
+
+    //         verts.push(ml[0], ml[1],    ...sphere(mlGCD),   i, 6);
+    //         verts.push(mr[0], mr[1],    ...sphere(mrGCD),   i, 3);
+    //         verts.push(bl[0], bl[1],    ...sphere(blGCD),   i, 5);
+
+    //         verts.push(bl[0], bl[1],    ...sphere(blGCD),   i, 5);
+    //         verts.push(mr[0], mr[1],    ...sphere(mrGCD),   i, 3);
+    //         verts.push(br[0], br[1],    ...sphere(brGCD),   i, 4);
+            
+    //         tlGCDPrev = tlGCD
+    //         trGCDPrev = trGCD
+    //         mrGCDPrev = mrGCD
+    //         brGCDPrev = brGCD
+    //         blGCDPrev = blGCD
+    //         mlGCDPrev = mlGCD
+    //     }
+
+    //     this.vertices = verts;
+    //     return this.vertices;
+    // }
+    
     getVertices(start: vec2, end: vec2, width: number): number[]{
-        let angleRad = -Math.atan2(end[1] - start[1], end[0] - start[0]);
+        let deg90 = 90*Math.PI/180;
+        let angleRad = Math.atan2(end[1] - start[1], end[0] - start[0]);
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
+        var r = Math.PI/2+0.001;
 
         let getBearing = (a: vec2, b: vec2): number => {
             let y = Math.sin(b[0] - a[0]) * Math.cos(b[1]);
@@ -51,11 +177,20 @@ export class StreamMesh {
                   Math.sin(a[1]) * Math.cos(b[1]) * Math.cos(b[0] - a[0]);
             return Math.atan2(y, x);
         }
-        
-        let bearing = getBearing(start, end);
-        console.log(angleRad, bearing);
-        var r = Math.PI/2+0.001;
-        let sphere = (x: number, y: number): number[] => {
+        let gcd = (start: vec2, end: vec2): number => {
+            let lon1 = start[0];
+            let lon2 = end[0];
+            let lat1 = -start[1];
+            let lat2 = -end[1];
+            let lonDelta = lon2 - lon1;
+            var a = Math.pow(Math.cos(lat2) * Math.sin(lonDelta) , 2) + Math.pow(Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lonDelta) , 2);
+            var b = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lonDelta);
+            
+            return Math.atan2(Math.sqrt(a) , b) * r;
+        }
+        let sphere = (pos: vec2): number[] => {
+            let x = pos[0];
+            let y = pos[1];
             return [
                 r*Math.cos(y)*Math.cos(x),
                 r*Math.cos(y)*Math.sin(x),
@@ -63,52 +198,118 @@ export class StreamMesh {
             ]
         }
 
-        let rCos = Math.cos(bearing);
-        let rSin = Math.sin(bearing);
-        let position = (vec: vec2): vec2 => ([
-            (rCos * vec[0]) + (rSin * vec[1]) + start[0], 
-            (rCos * vec[1]) - (rSin * vec[0]) + start[1]
-        ]);
-        let chunkLength = length/this.lengthNo;
-        
-        let verts: number[] = [];
-        for(let i = 0; i < this.lengthNo; i++){
-            let x = (i*chunkLength);
-            let xNext = x+chunkLength;
-            let y = 0;
-            let y2 = width/2;
-            let y3 = width;
-            y -= (width/2)
-            y2 -= (width/2)
-            y3 -= (width/2)
+        let bearing = getBearing([start[0], -start[1]], [end[0], -end[1]]);
+        let dist = gcd(start, end);
 
-            let tl = position([x, y]) // 1
-            let tr = position([xNext, y]) // 2
-            let mr = position([xNext, y2]) // 3
-            let br = position([xNext, y3]) // 4
-            let bl = position([x, y3]) // 5
-            let ml = position([x, y2]) // 6
+        let gcPosition = (start: vec2, d: number): vec2 => {
+            let startX = start[0];
+            let startY = -start[1];
+            let dr = d/r;
+            let y = (Math.asin( Math.sin(startY)*Math.cos(dr) + Math.cos(startY)*Math.sin(dr)*Math.cos(bearing)));
 
-            // flat(2), sperical(3), coloring id(2)
-            verts.push(tl[0], tl[1],    ...sphere(tl[0], tl[1]),   i, 1);
-            verts.push(tr[0], tr[1],    ...sphere(tr[0], tr[1]),   i, 2);
-            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
-
-            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
-            verts.push(tr[0], tr[1],    ...sphere(tr[0], tr[1]),   i, 2);
-            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
-
-
-            verts.push(ml[0], ml[1],    ...sphere(ml[0], ml[1]),   i, 6);
-            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
-            verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
-
-            verts.push(bl[0], bl[1],    ...sphere(bl[0], bl[1]),   i, 5);
-            verts.push(mr[0], mr[1],    ...sphere(mr[0], mr[1]),   i, 3);
-            verts.push(br[0], br[1],    ...sphere(br[0], br[1]),   i, 4);
-            
+            let x = (startX + Math.atan2(Math.sin(bearing)*Math.sin(dr)*Math.cos(startY), Math.cos(dr)-Math.sin(startY)*Math.sin(y)));
+            return [x, -y]
         }
 
+
+        let verts: number[] = [];
+
+
+        let chunkLength = length/this.lengthNo;
+        let chunkDist = dist/this.lengthNo;
+        let angleCWRad = (angleRad + deg90) % (Math.PI*2);
+        let angleCCWRad = (angleRad - deg90) % (Math.PI*2);
+
+        let lastPos: vec2 = start;
+        let lastPosGC: vec2 = start;
+        const offset = width/2
+
+        for(let i = 0; i < this.lengthNo; i++){
+            let nextPos: vec2 = [
+                lastPos[0] + chunkLength * Math.cos(angleRad),
+                lastPos[1] + chunkLength * Math.sin(angleRad),
+            ];
+            
+
+            let lt: vec2 = [
+                lastPos[0] + offset * Math.cos(angleCCWRad),
+                lastPos[1] + offset * Math.sin(angleCCWRad),
+            ];
+            let mt = lastPos;
+            let rt: vec2 = [
+                lastPos[0] + offset * Math.cos(angleCWRad),
+                lastPos[1] + offset * Math.sin(angleCWRad),
+            ];
+
+            let lb: vec2 = [
+                nextPos[0] + offset * Math.cos(angleCCWRad),
+                nextPos[1] + offset * Math.sin(angleCCWRad),
+            ];
+            let mb = nextPos;
+            let rb: vec2 = [
+                nextPos[0] + offset * Math.cos(angleCWRad),
+                nextPos[1] + offset * Math.sin(angleCWRad),
+            ];
+
+
+
+
+
+            let nextPosGC: vec2 = gcPosition(start, chunkDist*(i+1));
+            let angleRadGC = getBearing(lastPosGC, nextPosGC);
+            let angleCWRadGC = (angleRadGC + deg90) % (Math.PI*2);
+            let angleCCWRadGC = (angleRadGC - deg90) % (Math.PI*2);
+
+            let ltGC: vec2 = [
+                lastPosGC[0] + offset * Math.cos(angleCCWRadGC),
+                lastPosGC[1] + offset * Math.sin(angleCCWRadGC),
+            ];
+            let mtGC = lastPosGC;
+            let rtGC: vec2 = [
+                lastPosGC[0] + offset * Math.cos(angleCWRadGC),
+                lastPosGC[1] + offset * Math.sin(angleCWRadGC),
+            ];
+
+            let lbGC: vec2 = [
+                nextPosGC[0] + offset * Math.cos(angleCCWRadGC),
+                nextPosGC[1] + offset * Math.sin(angleCCWRadGC),
+            ];
+            let mbGC = nextPosGC;
+            let rbGC: vec2 = [
+                nextPosGC[0] + offset * Math.cos(angleCWRadGC),
+                nextPosGC[1] + offset * Math.sin(angleCWRadGC),
+            ];
+
+            /*
+            lt: 1
+            mt: 2
+            rt: 3
+            lb: 4
+            mb: 5
+            rb: 6
+            */
+
+            // flat(2), sperical(3), coloring id(2)
+            verts.push(lt[0], lt[1],    ...sphere(ltGC),   i, 1);
+            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
+            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4);
+
+            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4);
+            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
+            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
+
+
+            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
+            verts.push(rt[0], rt[1],    ...sphere(rtGC),   i, 3);
+            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
+
+            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
+            verts.push(rt[0], rt[1],    ...sphere(rtGC),   i, 3);
+            verts.push(rb[0], rb[1],    ...sphere(rbGC),   i, 6);
+
+            lastPos = nextPos;
+            lastPosGC = nextPosGC;
+        }
         this.vertices = verts;
         return this.vertices;
     }

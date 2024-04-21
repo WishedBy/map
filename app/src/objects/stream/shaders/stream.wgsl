@@ -77,7 +77,6 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     var output : Fragment;
     npos = object.model * npos;
     npos = transformer.projection * transformer.view * npos;
-   
     output.Position = npos;
 
     
@@ -98,12 +97,12 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     let gradStepL: f32 = 1.0/f32(steps);
     var a = 0.0;
 
-    if(colid.y == 3 || colid.y == 6){
+    if(colid.y == 2 || colid.y == 5){
         a = max(1.0-(f32(dist)*gradStepL), 0.0);
-        if(i32(colid.x) <= center && colid.y == 6){
+        if(i32(colid.x) <= center && colid.y == 2){
             a -= gradStepL;
         }
-        else if(i32(colid.x) >= center && colid.y == 3){
+        else if(i32(colid.x) >= center && colid.y == 5){
             a -= gradStepL;
         }
     }

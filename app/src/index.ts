@@ -21,7 +21,6 @@ export async function main(canvas: HTMLCanvasElement ){
         if(e.which == 1){
             mapState.leftMousePressed = true;
             mapState.mousePosStart = mapState.mousePosCurrent;
-            mapState.mousePosLast = mapState.mousePosCurrent;
         }
     })
     $(document).on("mouseup", (e: JQuery.MouseUpEvent) => {
