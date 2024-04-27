@@ -3,6 +3,9 @@ import { Material } from "./objects/material";
 import { Renderer } from "./renderer";
 import { MapScene, State } from "./map/map";
 import { scene } from "./map/scene";
+import { nl } from "./countries/nl";
+import { countries } from "../countries";
+
 
 
 /**
@@ -76,6 +79,32 @@ export async function main(canvas: HTMLCanvasElement ){
 
     await renderer.Initialize();
     renderer.run();
+
+    let country = nl;
+    if(country.geo_shape.geometry.type == "MultiPolygon"){
+        country.geo_shape.geometry.coordinates.forEach((list) => {
+            (list as number[][][]).forEach((shape) => {
+                let start: number[] = shape[0];
+                let last: number[] = shape[0];
+                for(let i = 1; i < shape.length; i++){
+                    scene.addLine(last as vec2, shape[i] as vec2, [1, 1, 0]);
+                    last = shape[i];
+                }
+                scene.addLine(last as vec2, start  as vec2, [1, 1, 0]);
+            })
+        })
+    }
+    // else if(country.geo_shape.geometry.type == "Polygon"){
+    //     (country.geo_shape.geometry.coordinates as number[][][]).forEach((shape) => {
+    //         let start: number[] = shape[0];
+    //         let last: number[] = shape[0];
+    //         for(let i = 1; i < shape.length; i++){
+    //             scene.addLine(last as vec2, shape[i] as vec2, [1, 1, 0]);
+    //             last = shape[i];
+    //         }
+    //         scene.addLine(last as vec2, start  as vec2, [1, 1, 0]);
+    //     })
+    // }
 
     setInterval(() => {
         for(let i = 0; i < 1; i++){
