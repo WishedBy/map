@@ -99,6 +99,7 @@ export class StreamMesh {
         let lastPosGC: vec2 = start;
         const offset = width/2
 
+
         for(let i = 0; i < this.lengthNo; i++){
             let nextPos: vec2 = [
                 lastPos[0] + chunkLength * Math.cos(angleRad),
@@ -110,7 +111,6 @@ export class StreamMesh {
                 lastPos[0] + offset * Math.cos(angleCCWRad),
                 lastPos[1] + offset * Math.sin(angleCCWRad),
             ];
-            let mt = lastPos;
             let rt: vec2 = [
                 lastPos[0] + offset * Math.cos(angleCWRad),
                 lastPos[1] + offset * Math.sin(angleCWRad),
@@ -120,7 +120,6 @@ export class StreamMesh {
                 nextPos[0] + offset * Math.cos(angleCCWRad),
                 nextPos[1] + offset * Math.sin(angleCCWRad),
             ];
-            let mb = nextPos;
             let rb: vec2 = [
                 nextPos[0] + offset * Math.cos(angleCWRad),
                 nextPos[1] + offset * Math.sin(angleCWRad),
@@ -139,7 +138,6 @@ export class StreamMesh {
                 lastPosGC[0] + offset * Math.cos(angleCCWRadGC),
                 lastPosGC[1] + offset * Math.sin(angleCCWRadGC),
             ];
-            let mtGC = lastPosGC;
             let rtGC: vec2 = [
                 lastPosGC[0] + offset * Math.cos(angleCWRadGC),
                 lastPosGC[1] + offset * Math.sin(angleCWRadGC),
@@ -149,45 +147,28 @@ export class StreamMesh {
                 nextPosGC[0] + offset * Math.cos(angleCCWRadGC),
                 nextPosGC[1] + offset * Math.sin(angleCCWRadGC),
             ];
-            let mbGC = nextPosGC;
             let rbGC: vec2 = [
                 nextPosGC[0] + offset * Math.cos(angleCWRadGC),
                 nextPosGC[1] + offset * Math.sin(angleCWRadGC),
             ];
 
-            /*
-            lt: 1
-            mt: 2
-            rt: 3
-            lb: 4
-            mb: 5
-            rb: 6
-            */
+            let uL = 0;
+            let uR = 1;
+            let vT = (1/this.lengthNo)*i;
+            let vB = (1/this.lengthNo)*(i+1);
 
-            // flat(2), sperical(3), coloring id(2)
-            verts.push(lt[0], lt[1],    ...sphere(ltGC),   i, 1); 
-            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2); 
-            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4); 
+            // flat(2), sperical(3), alpha distances(2)
+            verts.push(lt[0], lt[1],    ...sphere(ltGC), uL, vT);
+            verts.push(rt[0], rt[1],    ...sphere(rtGC), uR, vT);
+            verts.push(lb[0], lb[1],    ...sphere(lbGC), uL, vB);
 
-            verts.push(lb[0], lb[1],    ...sphere(lbGC),   i, 4); 
-            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
-            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5); 
-
-
-
-
-            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
-            verts.push(rb[0], rb[1],    ...sphere(rbGC),   i, 6);
-            verts.push(mb[0], mb[1],    ...sphere(mbGC),   i, 5);
-
-            verts.push(mt[0], mt[1],    ...sphere(mtGC),   i, 2);
-            verts.push(rt[0], rt[1],    ...sphere(rtGC),   i, 3);
-            verts.push(rb[0], rb[1],    ...sphere(rbGC),   i, 6);
-
-
-
+            verts.push(lb[0], lb[1],    ...sphere(lbGC), uL, vB);
+            verts.push(rt[0], rt[1],    ...sphere(rtGC), uR, vT);
+            verts.push(rb[0], rb[1],    ...sphere(rbGC), uR, vB);
             lastPos = nextPos;
             lastPosGC = nextPosGC;
+
+
         }
         this.vertices = verts;
         return this.vertices;

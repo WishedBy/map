@@ -76,8 +76,7 @@ export class StreamModel {
 
         data.push(this.streamPos);
         data.push(this.animationMod);
-        data.push(this.mesh.lengthNo);
-        data.push(10);
+        data.push(0.5);
 
         return new Float32Array(data);
     }

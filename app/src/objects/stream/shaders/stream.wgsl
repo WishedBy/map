@@ -14,8 +14,7 @@ struct model {
     color: vec3<f32>,
     streamPos: f32,
     animationMod: f32,
-    lengthNo: f32,
-    fadeSteps: f32,
+    fadeDist: f32,
 };
 
 
@@ -28,7 +27,8 @@ struct model {
 
 struct Fragment {
     @builtin(position) Position : vec4<f32>,
-    @location(0) @interpolate(linear) Color : vec4<f32>,
+    @location(0) @interpolate(flat) Color : vec3<f32>,
+    @location(1) @interpolate(linear) uv : vec2<f32>,
 
 };
 
@@ -41,7 +41,7 @@ const halfpi = pi/2;
 const r = halfpi+0.001;
 
 @vertex
-fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>,  @location(2) colid: vec2<f32>) -> Fragment {
+fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSphere: vec3<f32>,  @location(2) uv: vec2<f32>) -> Fragment {
 
     var vpos = vertexPostion;
 
@@ -81,63 +81,37 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     output.Position = npos;
 
     
-    let l: i32 = i32(object.lengthNo);
-    var steps: i32 = i32(object.fadeSteps);
-    var sp: f32 = object.streamPos;
-    var center = i32(round(f32(l)*sp));
+    var uvCenter = vec2<f32>(0.5, object.streamPos);
+    var fd = object.fadeDist;
+    if(uvCenter.y < fd){
+        fd = uvCenter.y;
+    }
+    if(uvCenter.y > 1-fd){
+        fd = 1-uvCenter.y;
+    }
+    var dm = 1/fd;
+
+    
+    var hd = (uv.x-uvCenter.x)*2;
+    var vd = (uv.y-uvCenter.y)*2*dm;
 
 
-    if(center < steps){
-        steps = center;
-    }
-    else if(center > l-steps){
-        steps = l-center;
-    }
-    let dist = abs(i32(colid.x) - center);
-
-    let gradStepL: f32 = 1.0/f32(steps);
-    var a = 0.0;
-
-    if(colid.y == 2 || colid.y == 5){
-        a = max(1.0-(f32(dist)*gradStepL), 0.0);
-        if(i32(colid.x) <= center && colid.y == 2){
-            a -= gradStepL;
-        }
-        else if(i32(colid.x) >= center && colid.y == 5){
-            a -= gradStepL;
-        }
-        
-    }
-
-    // if(colid.y >= 1 && i32(colid.x) <= center){
-    //     a = max(1.0-(f32(dist)*gradStepL), 0.0);
-    //     if(colid.y == 1){
-    //         a -= gradStepL;
-    //     }
-    // }else if(colid.y != 1 && i32(colid.x) >= center){
-    //     a = max(1.0-(f32(dist)*gradStepL), 0.0);
-    //     if(colid.y == 0){
-    //         a -= gradStepL;
-    //     }
-    // }
-    var col = vec3<f32>(0,0,0);
-    if(colid.y == 0){
-        col.x = 1;
-    }
-    if(colid.y == 1){
-        col.y = 1;
-    }
-    if(colid.y == 2){
-        col.z = 1;
-    }
- 
-    output.Color = vec4<f32>(object.color, a);
+    output.Color = object.color;
+    output.uv = vec2<f32>(hd, vd);
 
     return output;
 }
 
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
-
-    return frag.Color;
+    var x = frag.uv.x;
+    if(x < 0.0){
+        x = x * -1.0;
+    }
+    var y = frag.uv.y;
+    if(y < 0.0){
+        y = y * -1.0;
+    }
+    var a = 1.0-sqrt(x*x + y*y);
+    return vec4<f32>(frag.Color, a);
 }
