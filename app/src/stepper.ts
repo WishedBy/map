@@ -84,7 +84,9 @@ export class Stepper{
         return this.startTime > 0 && this.pausedTime == 0
     }
     play(): Stepper {
-        
+        if(this.playing()){
+            return this;
+        }
         if(this.startTime > 0){
             this.startTime += (Date.now()-this.pausedTime)
         }else{
