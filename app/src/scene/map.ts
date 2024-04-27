@@ -50,7 +50,7 @@ export class MapScene implements scene {
             mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial, mapMaterialDark)
         };
         this.streamOpts = {
-            streamConfig: new StreamShaderConfig(device, globalBuffer, mapMaterial, mapMaterialDark)
+            streamConfig: new StreamShaderConfig(device, globalBuffer)
         };
 
 
@@ -170,7 +170,7 @@ export class MapScene implements scene {
             viewTransform: this.observer.getView(),
             groups: [] as RenderGroup[], 
         }
-        let mapv = this.mapOpts.mapConfig.mesh.getVertices(1);
+        let mapv = this.mapOpts.mapConfig.mesh.getVertices();
         let objects: RenderObject[] = [];
         this.maps.forEach((map) => {
             let o:RenderObject = { 

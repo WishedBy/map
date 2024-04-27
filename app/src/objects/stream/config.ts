@@ -5,7 +5,6 @@ import stream from "./shaders/stream.wgsl";
 
 export class shaderConfig{
     device: GPUDevice
-    quality: number
 
     shader = stream
     bindGroups = [] as GPUBindGroup[]
@@ -15,20 +14,12 @@ export class shaderConfig{
     bindGroupLayout: GPUBindGroupLayout
 
     globalBuffer: GPUBuffer
-    mapMaterial: Material
-    mapMaterialDark: Material
 
-    depthStencilBuffer!: GPUTexture;
-    depthStencilView!: GPUTextureView;
-    depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
    
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, quality: number = 1){
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer){
         this.device = device
-        this.quality = quality
         this.globalBuffer = globalBuffer
-        this.mapMaterial = mapMaterial
-        this.mapMaterialDark = mapMaterialDark
     
         this.bindGroupLayout = this.device.createBindGroupLayout({
             entries: [

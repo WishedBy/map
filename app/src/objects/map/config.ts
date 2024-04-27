@@ -5,7 +5,6 @@ import map from "./shaders/map.wgsl";
 
 export class shaderConfig{
     device: GPUDevice
-    quality: number
     mesh: MapMesh = new MapMesh();
 
     shader = map
@@ -19,14 +18,10 @@ export class shaderConfig{
     mapMaterial: Material
     mapMaterialDark: Material
 
-    depthStencilBuffer!: GPUTexture;
-    depthStencilView!: GPUTextureView;
-    depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
    
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, quality: number = 1){
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material){
         this.device = device
-        this.quality = quality
         this.globalBuffer = globalBuffer
         this.mapMaterial = mapMaterial
         this.mapMaterialDark = mapMaterialDark
