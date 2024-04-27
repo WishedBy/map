@@ -1,10 +1,7 @@
 
-import map from "./objects/map/shaders/map.wgsl";
 import { mat4 } from "gl-matrix";
-import { MapMesh } from "./objects/map/mesh";
 import $ from "jquery";
-import { Material } from "./objects/material";
-import { scene } from "./scene/scene";
+import { scene } from "./map/scene";
 
 export class Renderer {
 

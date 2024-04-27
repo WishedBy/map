@@ -1,9 +1,8 @@
 import { vec2, vec3 } from "gl-matrix";
-import { shaderConfig as MapShaderConfig } from "./objects/map/config";
 import { Material } from "./objects/material";
 import { Renderer } from "./renderer";
-import { MapScene, State } from "./scene/map";
-import { scene } from "./scene/scene";
+import { MapScene, State } from "./map/map";
+import { scene } from "./map/scene";
 
 
 /**
@@ -79,17 +78,18 @@ export async function main(canvas: HTMLCanvasElement ){
     renderer.run();
 
     setInterval(() => {
-        // scene.doStream([6.572019, 53.212365], [-63.583266, -54.751260], hslToRgb(Math.random(), 1, 0.5));
-        let start:vec2 = [
-            (Math.random()*360)-180,
-            (Math.random()*180)-90,
-        ];
-        let end:vec2 = [
-            (Math.random()*360)-180,
-            (Math.random()*180)-90,
-        ];
-        scene.doStream(start, end, hslToRgb(Math.random(), 1, 0.5));
-    }, 1)
+        for(let i = 0; i < 1; i++){
+            let start:vec2 = [
+                (Math.random()*360)-180,
+                (Math.random()*180)-90,
+            ];
+            let end:vec2 = [
+                (Math.random()*360)-180,
+                (Math.random()*180)-90,
+            ];
+            scene.doStream(start, end, hslToRgb(Math.random(), 1, 0.5));
+        }
+    }, 100)
 
 
 }
