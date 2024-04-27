@@ -81,6 +81,7 @@ export async function main(canvas: HTMLCanvasElement ){
     renderer.run();
 
     let country = nl;
+    // i think instead of this, these shapes should be drawn to a texture
     if(country.geo_shape.geometry.type == "MultiPolygon"){
         country.geo_shape.geometry.coordinates.forEach((list) => {
             (list as number[][][]).forEach((shape) => {
