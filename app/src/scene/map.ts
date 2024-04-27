@@ -30,7 +30,7 @@ export class MapScene implements scene {
     mapOpts: mapOpts
     streamOpts: streamOpts
     maps: MapModel[];
-    streams: StreamModel[] = [];
+    streams: Map<string, StreamModel> = new Map<string, StreamModel>;
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
@@ -41,6 +41,9 @@ export class MapScene implements scene {
 
     rotateLast: vec3 = [0,0,0]
 
+    streamDuration: number = 1000;
+
+    mainMapPosition: vec3 = [0,0,0];
 
 
     constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, state: State) {
@@ -57,10 +60,19 @@ export class MapScene implements scene {
         this.observer = new Camera(
             [-5, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        let mapPosition: vec3 = [0,0,0];
         this.maps = [
-            new MapModel(mapPosition), 
+            new MapModel(this.mainMapPosition), 
         ];
+
+
+
+        $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
+            this.sphereStepper.play();
+        });
+
+    }
+
+    doStream(start: vec2, end: vec2, color: vec3) {
 
         let mapWidth    = 2*Math.PI;
         let mapHeight   = Math.PI;
@@ -70,24 +82,23 @@ export class MapScene implements scene {
         let lat2y = (lat: number):number => {
             return ((lat * -1) * (mapHeight/ 180));
         }
+        
+        let m = new StreamModel(
+            [lon2x(start[0]), lat2y(start[1])], 
+            [lon2x(end[0]), lat2y(end[1])],
+            color,
+            this.mainMapPosition,
+            this.streamDuration
+        )
+        
+        let k = start.join('|')+'|'+end.join('|')+Date.now()
 
-        this.streams = [
-            new StreamModel(
-                [lon2x(6.572019), lat2y(53.212365)], 
-                [lon2x(-63.583266), lat2y(-54.751260)],
-            ), 
-            // new StreamModel(
-            //     [lon2x(-63.583266), lat2y(-54.751260)],
-            //     [lon2x(6.572019), lat2y(53.212365)], 
-            // ), 
-        ];
+        this.streams.set(k, m)
 
-
-        $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
-            this.sphereStepper.play();
-        });
+        setTimeout(() => {this.streams.delete(k)}, this.streamDuration*1.02);
 
     }
+
     update() {
 
         this.observer.update();
@@ -137,12 +148,7 @@ export class MapScene implements scene {
     getVertexBuffer(vertices: number[], id: string, overwrite: boolean = false): GPUBuffer{
         if(this.vertexBbuffers.has(id)){
             let buffer = this.vertexBbuffers.get(id) as GPUBuffer;
-            if(buffer.size >= vertices.length*4){
-                if(overwrite){
-                    //Buffer has been created, now load in the vertices
-                    new Float32Array(buffer.getMappedRange()).set(vertices);
-                    buffer.unmap();
-                }
+            if(buffer.size >= vertices.length*4 && !overwrite){
                 return buffer;
             }else{
                 this.vertexBbuffers.delete(id)
@@ -206,7 +212,7 @@ export class MapScene implements scene {
             objects: dataStreams,
             pipeline: this.streamOpts.streamConfig.getPipeline(dss, sampleCount),
             getBindGroup: (subModelBuffer: GPUBuffer) => this.streamOpts.streamConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(vertices, "lines"),
+            vertexBuffer: this.getVertexBuffer(vertices, "lines", true),
         }
         res.groups.push(streamsGroup)
 

@@ -10,20 +10,24 @@ export class StreamModel {
     model: mat4;
     animationMod: number = 0;
     streamPos: number = 0;
+    color: vec3;
 
 
     xAngle: number = 0;
     yAngle: number = 0;
     zAngle: number = 0;
 
-    streamStepper: Stepper = new Stepper(StepperTimerType.Time, 1000, StepperCycleType.Restart, easeNOOP).play();
+    streamStepper: Stepper;
     vertices: number[];
     // start and end in radians
-    constructor(start: vec2, end: vec2){
-        this.position = [0, 0, 0];
+    constructor(start: vec2, end: vec2, color: vec3, position: vec3, duration: number){
+        this.position = position;
+        this.color = color;
         this.model = mat4.create();
         
         this.vertices = this.mesh.getVertices(start, end, 1/30);
+
+        this.streamStepper = new Stepper(StepperTimerType.Time, duration, StepperCycleType.End, easeNOOP).play()
         
     }
     forgetRotation(){
@@ -69,14 +73,14 @@ export class StreamModel {
             data.push(<number>this.model.at(i));
         }
         // color
-        data.push(1.0);
-        data.push(0.0);
-        data.push(0.0);
+        data.push(this.color[0]);
+        data.push(this.color[1]);
+        data.push(this.color[2]);
 
 
         data.push(this.streamPos);
         data.push(this.animationMod);
-        data.push(0.5);
+        data.push(0.1);
 
         return new Float32Array(data);
     }

@@ -77,7 +77,7 @@ export class Renderer {
     }
 
 
-    run = () => {
+    run = async () => {
         this.render();
         if(this.running){
             requestAnimationFrame(this.run)
