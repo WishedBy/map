@@ -1,4 +1,3 @@
-import { Material } from "../material";
 import { LineMesh } from "./mesh";
 import line from "./shaders/line.wgsl";
 

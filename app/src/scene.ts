@@ -1,5 +1,5 @@
 import { vec3 } from "gl-matrix"
-import { Camera } from "../camera/camera"
+import { Camera } from "./camera/camera"
 import { RenderData } from "./renderData"
 
 export class light {

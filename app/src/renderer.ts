@@ -1,7 +1,7 @@
 
 import { mat4 } from "gl-matrix";
 import $ from "jquery";
-import { scene } from "./map/scene";
+import { scene } from "./scene";
 
 export class Renderer {
 
@@ -17,8 +17,6 @@ export class Renderer {
     globalBuffer!: GPUBuffer;
 
 
-    //a little dodgy but let's do this for not
-    t: number = 0.0;
 
     
     depthStencilState!: GPUDepthStencilState;
@@ -36,8 +34,6 @@ export class Renderer {
     constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer) => scene){
         this.canvas = canvas;
         this.device = device;
-        this.t = 0.0; 
-
         this.globalBuffer = this.device.createBuffer({
             size: (64 * 2)+20+12,// +12 is alignment trailer
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST

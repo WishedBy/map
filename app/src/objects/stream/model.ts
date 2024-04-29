@@ -20,7 +20,7 @@ export class StreamModel {
     streamStepper: Stepper;
     vertices: number[];
 
-    size: number;
+    visibleSize: number;
 
     // start and end in radians
     constructor(start: vec2, end: vec2, color: vec3, position: vec3, duration: number){
@@ -29,7 +29,7 @@ export class StreamModel {
         this.model = mat4.create();
         
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
-        this.size = 0.2/length;
+        this.visibleSize = 0.2/length;
         this.vertices = this.mesh.getVertices(start, end, 1/30);
 
         this.streamStepper = new Stepper(StepperTimerType.Time, duration, StepperCycleType.End, easeNOOP).play()
@@ -85,7 +85,7 @@ export class StreamModel {
 
         data.push(this.streamPos);
         data.push(this.animationMod);
-        data.push(this.size);
+        data.push(this.visibleSize);
 
         return new Float32Array(data);
     }

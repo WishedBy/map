@@ -7,10 +7,8 @@ export class LineMesh {
     vertices!: number[]
     bufferLayout: GPUVertexBufferLayout
 
-    lengthNo = 100; // segments in length
 
-    constructor(lengthNo: number = 51) {
-        this.lengthNo = lengthNo;
+    constructor() {
  
         //now define the buffer layout
         this.bufferLayout = {
@@ -35,7 +33,7 @@ export class LineMesh {
     }
 
     
-    getVertices(start: vec2, end: vec2, width: number): number[]{
+    getVertices(start: vec2, end: vec2, width: number, lengthNo: number = 20): number[]{
         let deg90 = 90*Math.PI/180;
         let angleRad = Math.atan2(end[1] - start[1], end[0] - start[0]);
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
@@ -85,8 +83,8 @@ export class LineMesh {
         let verts: number[] = [];
 
 
-        let chunkLength = length/this.lengthNo;
-        let chunkDist = dist/this.lengthNo;
+        let chunkLength = length/lengthNo;
+        let chunkDist = dist/lengthNo;
         let angleCWRad = (angleRad - deg90) % (Math.PI*2);
         let angleCCWRad = (angleRad + deg90) % (Math.PI*2);
 
@@ -95,7 +93,7 @@ export class LineMesh {
         const offset = width/2
 
 
-        for(let i = 0; i < this.lengthNo; i++){
+        for(let i = 0; i < lengthNo; i++){
             let nextPos: vec2 = [
                 lastPos[0] + chunkLength * Math.cos(angleRad),
                 lastPos[1] + chunkLength * Math.sin(angleRad),
@@ -147,10 +145,6 @@ export class LineMesh {
                 nextPosGC[1] + offset * Math.sin(angleCWRadGC),
             ];
 
-            let uL = 0;
-            let uR = 1;
-            let vT = (1/this.lengthNo)*i;
-            let vB = (1/this.lengthNo)*(i+1);
 
             // flat(2), sperical(3), alpha distances(2)
             verts.push(lt[0], lt[1],    ...sphere(ltGC));

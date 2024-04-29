@@ -25,7 +25,8 @@ export class MapLineModel {
         this.color = color;
         this.model = mat4.create();
         
-        this.vertices = this.mesh.getVertices(start, end, 1/100);
+        let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
+        this.vertices = this.mesh.getVertices(start, end, 1/100, Math.floor(length)+1);
 
         
     }

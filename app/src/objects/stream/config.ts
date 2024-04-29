@@ -1,4 +1,3 @@
-import { Material } from "../material";
 import { StreamMesh } from "./mesh";
 import stream from "./shaders/stream.wgsl";
 

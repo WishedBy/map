@@ -71,7 +71,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
         z = (1-m2)*pos.z + vertexPostionSphere.z*m2;
         y = ((1-m1)*pos.y) + (y);
     }
-    x -= 0.1 * (1-m1);
+    x -= 0.001 * (1-m1);
   
     var npos = vec4<f32>(x, y, z, 1.0);
 
@@ -102,8 +102,13 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     return output;
 }
 
+struct Output{
+	@location(0) color: vec4<f32>,
+	@builtin(frag_depth) depth: f32
+}
+
 @fragment
-fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
+fn fs_main(frag: Fragment) -> Output {
     var x = frag.uv.x;
     if(x < 0.0){
         x = x * -1.0;
@@ -113,5 +118,8 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
         y = y * -1.0;
     }
     var a = 1.0-sqrt(x*x + y*y);
-    return vec4<f32>(frag.Color, a);
+    var output : Output;
+    output.color = vec4<f32>(frag.Color, a);
+    output.depth = -0.5;
+    return output;
 }

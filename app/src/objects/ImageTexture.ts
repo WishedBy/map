@@ -1,4 +1,4 @@
-export class Material {
+export class ImageTexture {
     
     texture: GPUTexture
     view: GPUTextureView
@@ -16,7 +16,7 @@ export class Material {
     }
 
 
-    static async create(device: GPUDevice, url: string): Promise<Material> {
+    static async create(device: GPUDevice, url: string): Promise<ImageTexture> {
         const response: Response = await fetch(url);
         const blob: Blob = await response.blob();
         const imageData: ImageBitmap = await createImageBitmap(blob);
@@ -47,7 +47,7 @@ export class Material {
             maxAnisotropy: 16
         };
 
-        return new Material(device, textureDescriptor, viewDescriptor, samplerDescriptor, imageData)
+        return new ImageTexture(device, textureDescriptor, viewDescriptor, samplerDescriptor, imageData)
         
     }
 

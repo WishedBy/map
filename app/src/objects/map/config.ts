@@ -1,4 +1,4 @@
-import { Material } from "../material";
+import { ImageTexture } from "../ImageTexture";
 import { MapMesh } from "./mesh";
 import map from "./shaders/map.wgsl";
 
@@ -15,12 +15,12 @@ export class shaderConfig{
     bindGroupLayout: GPUBindGroupLayout
 
     globalBuffer: GPUBuffer
-    mapMaterial: Material
-    mapMaterialDark: Material
+    mapMaterial: ImageTexture
+    mapMaterialDark: ImageTexture
 
    
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material){
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture){
         this.device = device
         this.globalBuffer = globalBuffer
         this.mapMaterial = mapMaterial

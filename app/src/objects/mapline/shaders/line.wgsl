@@ -88,7 +88,15 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     return output;
 }
 
+struct Output{
+	@location(0) color: vec4<f32>,
+	@builtin(frag_depth) depth: f32
+}
+
 @fragment
-fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
-    return frag.Color;
+fn fs_main(frag: Fragment) ->  Output{
+    var output : Output;
+    output.color = frag.Color;
+    output.depth = -0.01;
+    return output;
 }

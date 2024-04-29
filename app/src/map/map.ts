@@ -2,12 +2,12 @@
 import { vec3,mat4, vec2 } from "gl-matrix";
 import { Camera } from "../camera/camera";
 import { MapModel } from "../objects/map/model";
-import { RenderData, RenderGroup, RenderObject } from "./renderData";
+import { RenderData, RenderGroup, RenderObject } from "../renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
 import { shaderConfig as StreamShaderConfig } from "../objects/stream/config";
 import { shaderConfig as LineShaderConfig } from "../objects/mapline/config";
-import { light, scene } from "./scene";
-import { Material } from "../objects/material";
+import { light, scene } from "../scene";
+import { ImageTexture } from "../objects/ImageTexture";
 import { Stepper, StepperCycleType, StepperTimerType, easeInOutCubicDouble, easeNOOP } from "../stepper";
 import { StreamModel } from "../objects/stream/model";
 import { MapLineModel } from "../objects/mapline/model";
@@ -37,7 +37,6 @@ export class MapScene implements scene {
     lineOpts: lineOpts
     maps: MapModel[];
     streams: Map<string, StreamModel> = new Map<string, StreamModel>;
-    lines: MapLineModel[] = [];
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
 
@@ -53,7 +52,7 @@ export class MapScene implements scene {
     mainMapPosition: vec3 = [0,0,0];
 
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: Material, mapMaterialDark: Material, state: State) {
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, state: State) {
         this.device = device
         this.state = state
         this.mapOpts = {
@@ -109,27 +108,6 @@ export class MapScene implements scene {
         setTimeout(() => {this.streams.delete(k)}, this.streamDuration*1.02);
 
     }
-    addLine(start: vec2, end: vec2, color: vec3) {
-
-        let mapWidth    = 2*Math.PI;
-        let mapHeight   = Math.PI;
-        let lon2x = (lon: number):number => {
-            return lon*(mapWidth/360)
-        }
-        let lat2y = (lat: number):number => {
-            return ((lat * -1) * (mapHeight/ 180));
-        }
-        
-        let m = new MapLineModel(
-            [lon2x(start[0]), lat2y(start[1])], 
-            [lon2x(end[0]), lat2y(end[1])],
-            color,
-            this.mainMapPosition
-        )
-
-        this.lines.push(m);
-        
-    }
 
     update() {
 
@@ -162,10 +140,6 @@ export class MapScene implements scene {
             map.update(a,b);
         });
         this.streams.forEach((s) => {
-            s.setRotation(rotate[0], rotate[1], rotate[2]);
-            s.update(a, b);
-        });
-        this.lines.forEach((s) => {
             s.setRotation(rotate[0], rotate[1], rotate[2]);
             s.update(a, b);
         });
@@ -254,25 +228,6 @@ export class MapScene implements scene {
 
 
         
-        let dataLines: RenderObject[] = [];
-        let verticesLines:number[] = [];
-        this.lines.forEach((l, i) => {
-            let verts = l.getVertices();
-            let o:RenderObject = { 
-                data: l.getRenderModel(),
-                vertexNo: l.getVertexNo(),
-                vertexOffset: verticesLines.length/l.getVertexPartCount(),
-            }
-            dataLines.push(o)
-            verticesLines.push(...verts);
-        });
-        let lineGroup: RenderGroup = {
-            objects: dataLines,
-            pipeline: this.lineOpts.lineConfig.getPipeline(dss, sampleCount),
-            getBindGroup: (subModelBuffer: GPUBuffer) => this.lineOpts.lineConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(verticesLines, "lines"),
-        }
-        res.groups.push(lineGroup)
 
         return res;
     }
