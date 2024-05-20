@@ -1,10 +1,11 @@
 import { vec2, vec3 } from "gl-matrix";
-import { Material } from "./objects/material";
+import { ImageTexture } from "./objects/ImageTexture";
 import { Renderer } from "./renderer";
 import { MapScene, State } from "./map/map";
 import { scene } from "./scene";
 import { nl } from "./countries/nl";
-import { countries } from "../countries";
+// import { countries } from "../countries";
+// import { Texture } from "./countries/texture";
 
 
 
@@ -49,6 +50,12 @@ function hslToRgb(h:number, s:number, l:number):vec3 {
     return [ r, g, b ];
   }
 
+// export async function testCanvas(canvas: HTMLCanvasElement ){
+//     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
+
+//     var texture = new Texture(canvas, device);
+
+// }
 export async function main(canvas: HTMLCanvasElement ){
   
     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
@@ -81,7 +88,7 @@ export async function main(canvas: HTMLCanvasElement ){
     renderer.run();
 
     // let country = nl;
-    // i think instead of this, these shapes should be drawn to a texture
+    // // i think instead of this, these shapes should be drawn to a texture
     // if(country.geo_shape.geometry.type == "MultiPolygon"){
     //     country.geo_shape.geometry.coordinates.forEach((list) => {
     //         (list as number[][][]).forEach((shape) => {
@@ -119,7 +126,7 @@ export async function main(canvas: HTMLCanvasElement ){
             ];
             scene.doStream(start, end, hslToRgb(Math.random(), 1, 0.5));
         }
-    }, 100)
+    }, 1)
 
 
 }

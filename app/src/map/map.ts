@@ -5,12 +5,13 @@ import { MapModel } from "../objects/map/model";
 import { RenderData, RenderGroup, RenderObject } from "../renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
 import { shaderConfig as StreamShaderConfig } from "../objects/stream/config";
-import { shaderConfig as LineShaderConfig } from "../objects/mapline/config";
+import { shaderConfig as testConfig } from "../objects/test/config";
 import { light, scene } from "../scene";
 import { ImageTexture } from "../objects/ImageTexture";
 import { Stepper, StepperCycleType, StepperTimerType, easeInOutCubicDouble, easeNOOP } from "../stepper";
 import { StreamModel } from "../objects/stream/model";
-import { MapLineModel } from "../objects/mapline/model";
+import { TestModel } from "../objects/test/model";
+import { CustomTexture } from "../customtexture";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -18,8 +19,9 @@ type mapOpts = {
 type streamOpts = {
     streamConfig: StreamShaderConfig
 }
-type lineOpts = {
-    lineConfig: LineShaderConfig
+
+type testOpts = {
+    testConfig: testConfig
 }
 
 export class State {
@@ -34,8 +36,9 @@ export class MapScene implements scene {
     state: State
     mapOpts: mapOpts
     streamOpts: streamOpts
-    lineOpts: lineOpts
+    testOpts: testOpts
     maps: MapModel[];
+    test: TestModel
     streams: Map<string, StreamModel> = new Map<string, StreamModel>;
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
@@ -62,8 +65,9 @@ export class MapScene implements scene {
             streamConfig: new StreamShaderConfig(device, globalBuffer)
         };
 
-        this.lineOpts = {
-            lineConfig: new LineShaderConfig(device, globalBuffer)
+        let t = new CustomTexture(device)
+        this.testOpts = {
+            testConfig: new testConfig(device, globalBuffer, t)
         };
 
 
@@ -74,11 +78,12 @@ export class MapScene implements scene {
             new MapModel(this.mainMapPosition), 
         ];
 
-
+        this.test = new TestModel(2*Math.PI, Math.PI, [-0.2,0,0]);
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
             this.sphereStepper.play();
         });
+        
 
     }
 
@@ -226,6 +231,24 @@ export class MapScene implements scene {
         }
         res.groups.push(streamsGroup)
 
+        
+
+
+        let dataTest: RenderObject[] = [];
+        let verticesTest:number[] =  this.test.getVertices();
+        let o:RenderObject = { 
+            data: this.test.getRenderModel(),
+            vertexNo: this.test.getVertexNo(),
+            vertexOffset: 0,
+        }
+        dataTest.push(o)
+        let testGroup: RenderGroup = {
+            objects: dataTest,
+            pipeline: this.testOpts.testConfig.getPipeline(dss, sampleCount),
+            getBindGroup: (subModelBuffer: GPUBuffer) => this.testOpts.testConfig.getBindGroup(subModelBuffer),
+            vertexBuffer: this.getVertexBuffer(verticesTest, "test", true),
+        }
+        res.groups.push(testGroup)
 
         
 

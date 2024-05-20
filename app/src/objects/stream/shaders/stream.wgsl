@@ -104,7 +104,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
 
 struct Output{
 	@location(0) color: vec4<f32>,
-	@builtin(frag_depth) depth: f32
+	// @builtin(frag_depth) depth: f32
 }
 
 @fragment
@@ -120,6 +120,6 @@ fn fs_main(frag: Fragment) -> Output {
     var a = 1.0-sqrt(x*x + y*y);
     var output : Output;
     output.color = vec4<f32>(frag.Color, a);
-    output.depth = -0.5;
+    // output.depth = -0.5;
     return output;
 }

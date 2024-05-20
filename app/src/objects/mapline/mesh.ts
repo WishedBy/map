@@ -34,6 +34,9 @@ export class LineMesh {
 
     
     getVertices(start: vec2, end: vec2, width: number, lengthNo: number = 20): number[]{
+        if(this.vertices && this.vertices.length > 0){
+            return  this.vertices
+        }
         let deg90 = 90*Math.PI/180;
         let angleRad = Math.atan2(end[1] - start[1], end[0] - start[0]);
         let length = Math.sqrt((start[0]-end[0])**2+(start[1]-end[1])**2);
