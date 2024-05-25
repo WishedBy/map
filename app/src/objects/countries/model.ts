@@ -1,9 +1,8 @@
 import { mat2, mat4, vec2, vec3 } from "gl-matrix";
 import { TestMesh } from "./mesh";
-import { Stepper, StepperCycleType, StepperTimerType, easeNOOP } from "../../stepper";
 
 
-export class TestModel {
+export class CountryModel {
 
     mesh: TestMesh = new TestMesh();
     position: vec3;

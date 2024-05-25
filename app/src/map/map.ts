@@ -5,13 +5,14 @@ import { MapModel } from "../objects/map/model";
 import { RenderData, RenderGroup, RenderObject } from "../renderData";
 import { shaderConfig as MapShaderConfig } from "../objects/map/config";
 import { shaderConfig as StreamShaderConfig } from "../objects/stream/config";
-import { shaderConfig as testConfig } from "../objects/test/config";
+import { shaderConfig as countryConfig } from "../objects/countries/config";
 import { light, scene } from "../scene";
 import { ImageTexture } from "../objects/ImageTexture";
 import { Stepper, StepperCycleType, StepperTimerType, easeInOutCubicDouble, easeNOOP } from "../stepper";
 import { StreamModel } from "../objects/stream/model";
-import { TestModel } from "../objects/test/model";
-import { CustomTexture } from "../customtexture";
+import { CountryModel } from "../objects/countries/model";
+import { CountryTexture, MultiPolygonGeometry } from "../objects/countries/texture";
+import { nl } from "../countries/nl";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -20,8 +21,8 @@ type streamOpts = {
     streamConfig: StreamShaderConfig
 }
 
-type testOpts = {
-    testConfig: testConfig
+type countryOpts = {
+    countryConfig: countryConfig
 }
 
 export class State {
@@ -36,9 +37,9 @@ export class MapScene implements scene {
     state: State
     mapOpts: mapOpts
     streamOpts: streamOpts
-    testOpts: testOpts
-    maps: MapModel[];
-    test: TestModel
+    countryOpts: countryOpts
+    map: MapModel
+    countries: CountryModel[]
     streams: Map<string, StreamModel> = new Map<string, StreamModel>;
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
@@ -65,20 +66,23 @@ export class MapScene implements scene {
             streamConfig: new StreamShaderConfig(device, globalBuffer)
         };
 
-        let t = new CustomTexture(device)
-        this.testOpts = {
-            testConfig: new testConfig(device, globalBuffer, t)
+
+        let t = new CountryTexture(device)
+        t.addCountryShapeAsLayer({
+            shapes: nl.geo_shape.geometry as MultiPolygonGeometry,
+            fillStart: [nl.geo_point_2d.lon, nl.geo_point_2d.lat]
+        })
+        this.countryOpts = {
+            countryConfig: new countryConfig(device, globalBuffer, t)
         };
 
 
         this.observer = new Camera(
             [-5, 0, 0], [0, 0, 0], [0, 0, -1]
         );
-        this.maps = [
-            new MapModel(this.mainMapPosition), 
-        ];
+        this.map = new MapModel(this.mainMapPosition)
 
-        this.test = new TestModel(2*Math.PI, Math.PI, [-0.2,0,0]);
+        this.countries = [new CountryModel(2*Math.PI, Math.PI, [-0.2,0,0])]
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
             this.sphereStepper.play();
@@ -140,10 +144,9 @@ export class MapScene implements scene {
             this.rotationStepper.play();
         }
 
-        this.maps.forEach((map) => {
-            map.setRotation(rotate[0], rotate[1], rotate[2]);
-            map.update(a,b);
-        });
+        this.map.setRotation(rotate[0], rotate[1], rotate[2]);
+        this.map.update(a,b);
+        
         this.streams.forEach((s) => {
             s.setRotation(rotate[0], rotate[1], rotate[2]);
             s.update(a, b);
@@ -193,15 +196,13 @@ export class MapScene implements scene {
         }
         let mapv = this.mapOpts.mapConfig.mesh.getVertices();
         let objects: RenderObject[] = [];
-        this.maps.forEach((map) => {
-            let o:RenderObject = { 
-                data: map.getRenderModel(),
-                vertexNo: this.mapOpts.mapConfig.getVerticeNo(),
-                vertexOffset: 0,
-            }
-            objects.push(o)
+        
+        objects.push({ 
+            data: this.map.getRenderModel(),
+            vertexNo: this.mapOpts.mapConfig.getVerticeNo(),
+            vertexOffset: 0,
+        })
 
-        });
         let mapGroup: RenderGroup = {
             objects: objects,
             pipeline: this.mapOpts.mapConfig.getPipeline(dss, sampleCount),
@@ -233,20 +234,24 @@ export class MapScene implements scene {
 
         
 
-
-        let dataTest: RenderObject[] = [];
-        let verticesTest:number[] =  this.test.getVertices();
-        let o:RenderObject = { 
-            data: this.test.getRenderModel(),
-            vertexNo: this.test.getVertexNo(),
-            vertexOffset: 0,
-        }
-        dataTest.push(o)
+        
+        let dataCountries: RenderObject[] = [];
+        let verticesCountries:number[] = [];
+        this.countries.forEach((country, i) => {
+            let verts:number[] =  country.getVertices();
+            let o:RenderObject = { 
+                data: country.getRenderModel(),
+                vertexNo: country.getVertexNo(),
+                vertexOffset: verticesCountries.length/country.getVertexPartCount(),
+            }
+            dataCountries.push(o)
+            verticesCountries.push(...verts);
+        })
         let testGroup: RenderGroup = {
-            objects: dataTest,
-            pipeline: this.testOpts.testConfig.getPipeline(dss, sampleCount),
-            getBindGroup: (subModelBuffer: GPUBuffer) => this.testOpts.testConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(verticesTest, "test", true),
+            objects: dataCountries,
+            pipeline: this.countryOpts.countryConfig.getPipeline(dss, sampleCount),
+            getBindGroup: (subModelBuffer: GPUBuffer) => this.countryOpts.countryConfig.getBindGroup(subModelBuffer),
+            vertexBuffer: this.getVertexBuffer(verticesCountries, "countries", true),
         }
         res.groups.push(testGroup)
 

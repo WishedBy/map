@@ -19,7 +19,7 @@ struct model {
 
 @binding(1) @group(0) var<storage, read> object: model;
 
-@binding(2) @group(0) var testTexture: texture_2d<f32>;
+@binding(2) @group(0) var testTexture: texture_2d_array<f32>;
 @binding(3) @group(0) var testSampler: sampler;
 
 
@@ -45,7 +45,7 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>) -> Fragment {
 
     var pos = vec4<f32>(0, vpos, 1.0);
 
-    var output : Fragment;
+    var output = Fragment();
     output.pos = vpos;
     pos = model * pos;
     pos = projection * view * pos;
@@ -64,7 +64,7 @@ struct Output{
 @fragment
 fn fs_main(frag: Fragment) ->  Output{
     var output : Output;
-    let a = textureSample(testTexture, testSampler, frag.pos);
+    let a = textureSample(testTexture, testSampler, frag.pos, 0);
     output.color = vec4<f32>(frag.Color, a[0]);
 
     

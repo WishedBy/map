@@ -1,4 +1,4 @@
-import { CustomTexture } from "../../customtexture";
+import { CountryTexture } from "./texture";
 import { TestMesh } from "./mesh";
 import test from "./shaders/test.wgsl";
 
@@ -15,14 +15,15 @@ export class shaderConfig{
 
     globalBuffer: GPUBuffer
 
-    texture: CustomTexture
+    texture: CountryTexture
 
    
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, texture: CustomTexture){
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, texture: CountryTexture){
         this.device = device
         this.globalBuffer = globalBuffer
         this.texture = texture
+
     
         this.bindGroupLayout = this.device.createBindGroupLayout({
             entries: [
@@ -42,6 +43,7 @@ export class shaderConfig{
                     binding: 2,
                     visibility: GPUShaderStage.FRAGMENT,
                     texture: {
+                        viewDimension: "2d-array" as GPUTextureViewDimension,
                     }
                 },
                 {
@@ -127,11 +129,11 @@ export class shaderConfig{
                 },
                 {
                     binding: 2,
-                    resource: this.texture.view
+                    resource: this.texture.getView()
                 },
                 {
                     binding: 3,
-                    resource: this.texture.sampler
+                    resource: this.texture.getSampler()
                 },
             ]
         });
