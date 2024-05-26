@@ -1,19 +1,10 @@
 import { vec2 } from "gl-matrix"
-
-export type MultiPolygonGeometry = {
-    type: "MultiPolygon",
-    coordinates: vec2[][][],
-}
+import { MultiPolygonGeometry, PolygonGeometry } from "../../countries/country_shapes"
 
 type countryData = {
-    shapes: MultiPolygonGeometry,
+    shapes: MultiPolygonGeometry|PolygonGeometry,
     fillStart: vec2
-    minLon?: number
-    maxLon?: number
-    minLat?: number
-    maxLat?: number
 }
-
 
 export class CountryTexture {
     
@@ -23,7 +14,8 @@ export class CountryTexture {
     sampler?: GPUSampler
     buffer: number[][] = []
 
-    dim = {width: 100, height: 100}
+    // dim = {width: 2048, height: 1024}
+    dim = {width: 500, height: 500}
 
     written = false
 
@@ -37,67 +29,127 @@ export class CountryTexture {
             throw new Error('Can only be modified before being written');
         }
 
-        if(
-            data.maxLon == undefined || data.maxLon == null || 
-            data.minLon == undefined || data.minLon == null || 
-            data.maxLat == undefined || data.maxLat == null || 
-            data.minLat == undefined || data.minLat == null
-        ){
-            if(data.maxLon == undefined || data.maxLon == null){
-                data.maxLon = Number.MIN_VALUE;
-            }
-            if(data.maxLat == undefined || data.maxLat == null){
-                data.maxLat = Number.MIN_VALUE;
-            }
-            if(data.minLon == undefined || data.minLon == null){
-                data.minLon = Number.MAX_VALUE;
-            }
-            if(data.minLat == undefined || data.minLat == null){
-                data.minLat = Number.MAX_VALUE;
-            }
-            data.shapes.coordinates.forEach(shape => {
-                shape.forEach(poly => {
-                    poly.forEach(point => {
-                        if(point[0] < data.minLon!){
-                            data.minLon = point[0]
-                        }
-                        if(point[0] > data.maxLon!){
-                            data.maxLon = point[0]
-                        }
-                        if(point[1] < data.minLat!){
-                            data.minLat = point[1]
-                        }
-                        if(point[1] > data.maxLat!){
-                            data.maxLat = point[1]
-                        }
-                    });
-                });
-            });
-            var {minLon, maxLon, minLat, maxLat} = data
-            console.log({minLon, maxLon, minLat, maxLat})
+        let coords: vec2[][][]
+        if(data.shapes.type == "MultiPolygon"){
+            coords = data.shapes.coordinates
+        }else if(data.shapes.type == "Polygon"){
+            coords = [data.shapes.coordinates]
+        }else{
+            throw new Error('Unknown shapes type');
         }
 
-        let layer = new Array(this.dim.width*this.dim.height).fill(0);
+        let minLon = -180;
+        let maxLon = 180;
+        let minLat = -90;
+        let maxLat = 90;
 
-        let lonRat = (this.dim.width)/(data.maxLon!-data.minLon!)
-        let LonOff = -data.minLon!
+        // temp for larger view
+        maxLon = Number.MIN_VALUE;
+        maxLat = Number.MIN_VALUE;
+        minLon = Number.MAX_VALUE;
+        minLat = Number.MAX_VALUE;
         
-        
-        let latRat = (this.dim.height)/(data.maxLat!-data.minLat!)
-        // let LatOff = this.dim.height - lonRat * data.maxLat!
-        let LatOff = -data.minLat!
 
-
-        data.shapes.coordinates.forEach(shape => {
+        coords.forEach(shape => {
             shape.forEach(poly => {
                 poly.forEach(point => {
-                    let x =  Math.round(lonRat * (point[0] + LonOff))
-                    let y = this.dim.height - Math.round(latRat * (point[1] + LatOff))
-
-                    layer[y*this.dim.width+x] = 255
+                    if(point[0] < minLon!){
+                        minLon = point[0]
+                    }
+                    if(point[0] > maxLon!){
+                        maxLon = point[0]
+                    }
+                    if(point[1] < minLat!){
+                        minLat = point[1]
+                    }
+                    if(point[1] > maxLat!){
+                        maxLat = point[1]
+                    }
                 });
             });
         });
+        console.log({minLon, maxLon, minLat, maxLat})
+        // end temp for larger view
+        
+
+        let layer = new Array(this.dim.width*this.dim.height).fill(0);
+
+        let lonRat = (this.dim.width)/(maxLon!-minLon!)
+        let LonOff = -minLon!
+        
+        let latRat = (this.dim.height)/(maxLat!-minLat!)
+        let LatOff = -minLat!
+
+        const drawLine = (p1: vec2, p2: vec2) => {
+            let p = p1
+            const dx = Math.abs(p2[0] - p1[0]);
+            const dy = Math.abs(p2[1] - p1[1]);
+            const sx = Math.sign(p2[0] - p1[0]);
+            const sy = Math.sign(p2[1] - p1[1]);
+            let err = dx - dy;
+            
+            while (true) {
+                layer[p[1]*this.dim.width+p[0]] = 255
+            
+                if (p[0] === p2[0] && p[1] === p2[1]) break;
+            
+                const e2 = 2 * err;
+                if (e2 > -dy) { err -= dy; p[0] += sx; }
+                if (e2 <  dx) { err += dx; p[1] += sy; }
+            }
+    }
+
+        coords.forEach(shape => {
+            shape.forEach(poly => {
+                poly.forEach((point, i) => {
+                    let point2: vec2
+                    if(i < poly.length-1){
+                        point2 = poly[i+1];
+                    }else{
+                        point2 = poly[0];
+                    }
+                    let p1: vec2 = [
+                        Math.floor(lonRat * (point[0] + LonOff)),
+                        this.dim.height - Math.floor(latRat * (point[1] + LatOff))
+                    ];
+                    let p2: vec2 = [
+                        Math.floor(lonRat * (point2[0] + LonOff)),
+                        this.dim.height - Math.floor(latRat * (point2[1] + LatOff))
+                    ];
+                    drawLine(p1, p2)
+                });
+
+                // drawing pixels per line wont work, attempting a flood fill might
+                // if it will i should either record a position for each polygon at this point, or i should just perform the floodfill here
+            });
+        });
+
+        for(let line = 0; line < this.dim.height; line++){
+            for(let x = 0; x < this.dim.width-1; x++){
+                let linePos = line*this.dim.width;
+                let aPos = linePos+x;
+                let bPos = 0;
+                if(layer[aPos] != 0 && layer[aPos+1] == 0){
+                    // console.log([line, x, layer[aPos]])
+                    let x1 = x;
+                    let x2 = -1;
+                    x++;
+                    for(; x < this.dim.width; x++){
+                        bPos = linePos+x;
+                        if(layer[bPos] != 0){
+                            x2 = x;
+                            break;
+                        }
+                    }
+                    if(x2 > -1){
+                        for(let i = x1; i <= x2; i++){
+                            layer[linePos+i] = 255;
+                        }
+                    }
+                }
+            } 
+        }
+
         this.buffer.push(layer);
 
         return this.buffer.length-1
@@ -110,22 +162,6 @@ export class CountryTexture {
         }
         this.written = true;
 
-        if(this.buffer.length == 0){
-            this.dim = {width: 4, height: 4}
-            this.buffer = [
-                [
-                    0, 255, 255, 255,
-                    255,   0, 255, 255,
-                    255, 255,   0, 255, 
-                    255, 255, 255,   0,
-                ],[
-                    122, 255, 255, 122,
-                    255, 122, 122, 255,
-                    255, 122, 122, 255, 
-                    122, 255, 255, 122,
-                ]
-            ]
-        }
         
         const textureDescriptor: GPUTextureDescriptor = {
             size: {

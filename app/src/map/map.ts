@@ -11,8 +11,8 @@ import { ImageTexture } from "../objects/ImageTexture";
 import { Stepper, StepperCycleType, StepperTimerType, easeInOutCubicDouble, easeNOOP } from "../stepper";
 import { StreamModel } from "../objects/stream/model";
 import { CountryModel } from "../objects/countries/model";
-import { CountryTexture, MultiPolygonGeometry } from "../objects/countries/texture";
-import { nl } from "../countries/nl";
+import { CountryTexture } from "../objects/countries/texture";
+import { CountryShape, MultiPolygonGeometry, shapes } from "../countries/country_shapes";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -39,7 +39,7 @@ export class MapScene implements scene {
     streamOpts: streamOpts
     countryOpts: countryOpts
     map: MapModel
-    countries: CountryModel[]
+    countries: CountryModel
     streams: Map<string, StreamModel> = new Map<string, StreamModel>;
     observer: Camera;
     light: light = new light([-10,-10,0], 1, 0);
@@ -56,7 +56,7 @@ export class MapScene implements scene {
     mainMapPosition: vec3 = [0,0,0];
 
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, state: State) {
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, countries: CountryShape[], state: State) {
         this.device = device
         this.state = state
         this.mapOpts = {
@@ -68,9 +68,12 @@ export class MapScene implements scene {
 
 
         let t = new CountryTexture(device)
+        let country = countries.find((shape) => {
+            return shape.iso2 === 'NL';
+        });
         t.addCountryShapeAsLayer({
-            shapes: nl.geo_shape.geometry as MultiPolygonGeometry,
-            fillStart: [nl.geo_point_2d.lon, nl.geo_point_2d.lat]
+            shapes: country!.geo_shape.geometry,
+            fillStart: [country!.geo_point_2d.lon, country!.geo_point_2d.lat]
         })
         this.countryOpts = {
             countryConfig: new countryConfig(device, globalBuffer, t)
@@ -82,7 +85,7 @@ export class MapScene implements scene {
         );
         this.map = new MapModel(this.mainMapPosition)
 
-        this.countries = [new CountryModel(2*Math.PI, Math.PI, [-0.2,0,0])]
+        this.countries = new CountryModel([-0.001,0,0])
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
             this.sphereStepper.play();
@@ -145,7 +148,9 @@ export class MapScene implements scene {
         }
 
         this.map.setRotation(rotate[0], rotate[1], rotate[2]);
+        this.countries.setRotation(rotate[0], rotate[1], rotate[2]);
         this.map.update(a,b);
+        this.countries.update(a,b);
         
         this.streams.forEach((s) => {
             s.setRotation(rotate[0], rotate[1], rotate[2]);
@@ -190,70 +195,73 @@ export class MapScene implements scene {
     }
 
     getRenderData(dss: GPUDepthStencilState, sampleCount: number):RenderData{
-        var res = { 
+        var res = {
             viewTransform: this.observer.getView(),
             groups: [] as RenderGroup[], 
-        }
-        let mapv = this.mapOpts.mapConfig.mesh.getVertices();
-        let objects: RenderObject[] = [];
-        
-        objects.push({ 
-            data: this.map.getRenderModel(),
-            vertexNo: this.mapOpts.mapConfig.getVerticeNo(),
-            vertexOffset: 0,
-        })
+        };
 
-        let mapGroup: RenderGroup = {
-            objects: objects,
-            pipeline: this.mapOpts.mapConfig.getPipeline(dss, sampleCount),
-            getBindGroup: (subModelBuffer: GPUBuffer) => this.mapOpts.mapConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(mapv, "map"),
-        }
-        res.groups.push(mapGroup)
-
-        
-        let dataStreams: RenderObject[] = [];
-        let vertices:number[] = [];
-        this.streams.forEach((stream, i) => {
-            let verts = stream.getVertices();
-            let o:RenderObject = { 
-                data: stream.getRenderModel(),
-                vertexNo: stream.getVertexNo(),
-                vertexOffset: vertices.length/stream.getVertexPartCount(),
+        (() => {
+            let mapv = this.mapOpts.mapConfig.mesh.getVertices();
+            let objects: RenderObject[] = [];
+            
+            objects.push({ 
+                data: this.map.getRenderModel(),
+                vertexNo: this.mapOpts.mapConfig.getVerticeNo(),
+                vertexOffset: 0,
+            })
+    
+            let mapGroup: RenderGroup = {
+                objects: objects,
+                pipeline: this.mapOpts.mapConfig.getPipeline(dss, sampleCount),
+                getBindGroup: (subModelBuffer: GPUBuffer) => this.mapOpts.mapConfig.getBindGroup(subModelBuffer),
+                vertexBuffer: this.getVertexBuffer(mapv, "map"),
             }
-            dataStreams.push(o)
-            vertices.push(...verts);
-        });
-        let streamsGroup: RenderGroup = {
-            objects: dataStreams,
-            pipeline: this.streamOpts.streamConfig.getPipeline(dss, sampleCount),
-            getBindGroup: (subModelBuffer: GPUBuffer) => this.streamOpts.streamConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(vertices, "streams", true),
-        }
-        res.groups.push(streamsGroup)
+            res.groups.push(mapGroup)
+        })();
 
-        
-
-        
-        let dataCountries: RenderObject[] = [];
-        let verticesCountries:number[] = [];
-        this.countries.forEach((country, i) => {
-            let verts:number[] =  country.getVertices();
+        (() => {
+            let dataCountries: RenderObject[] = [];
+            let verticesCountries:number[] =  this.countryOpts.countryConfig.mesh.getVertices();
             let o:RenderObject = { 
-                data: country.getRenderModel(),
-                vertexNo: country.getVertexNo(),
-                vertexOffset: verticesCountries.length/country.getVertexPartCount(),
+                data: this.countries.getRenderModel(),
+                vertexNo: this.countryOpts.countryConfig.getVerticeNo(),
+                vertexOffset: 0,
             }
             dataCountries.push(o)
-            verticesCountries.push(...verts);
-        })
-        let testGroup: RenderGroup = {
-            objects: dataCountries,
-            pipeline: this.countryOpts.countryConfig.getPipeline(dss, sampleCount),
-            getBindGroup: (subModelBuffer: GPUBuffer) => this.countryOpts.countryConfig.getBindGroup(subModelBuffer),
-            vertexBuffer: this.getVertexBuffer(verticesCountries, "countries", true),
-        }
-        res.groups.push(testGroup)
+            let testGroup: RenderGroup = {
+                objects: dataCountries,
+                pipeline: this.countryOpts.countryConfig.getPipeline(dss, sampleCount),
+                getBindGroup: (subModelBuffer: GPUBuffer) => this.countryOpts.countryConfig.getBindGroup(subModelBuffer),
+                vertexBuffer: this.getVertexBuffer(verticesCountries, "countries", true),
+            }
+            res.groups.push(testGroup)
+        })();
+        
+        (() => {
+            let dataStreams: RenderObject[] = [];
+            let vertices:number[] = [];
+            this.streams.forEach((stream, i) => {
+                let verts = stream.getVertices();
+                let o:RenderObject = { 
+                    data: stream.getRenderModel(),
+                    vertexNo: stream.getVertexNo(),
+                    vertexOffset: vertices.length/stream.getVertexPartCount(),
+                }
+                dataStreams.push(o)
+                vertices.push(...verts);
+            });
+            let streamsGroup: RenderGroup = {
+                objects: dataStreams,
+                pipeline: this.streamOpts.streamConfig.getPipeline(dss, sampleCount),
+                getBindGroup: (subModelBuffer: GPUBuffer) => this.streamOpts.streamConfig.getBindGroup(subModelBuffer),
+                vertexBuffer: this.getVertexBuffer(vertices, "streams", true),
+            }
+            res.groups.push(streamsGroup)
+        })();
+
+        
+
+        
 
         
 

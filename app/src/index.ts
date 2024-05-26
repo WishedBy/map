@@ -3,9 +3,7 @@ import { ImageTexture } from "./objects/ImageTexture";
 import { Renderer } from "./renderer";
 import { MapScene, State } from "./map/map";
 import { scene } from "./scene";
-import { nl } from "./countries/nl";
-// import { countries } from "../countries";
-// import { Texture } from "./countries/texture";
+import { CountryShape } from "./countries/country_shapes";
 
 
 
@@ -57,7 +55,7 @@ function hslToRgb(h:number, s:number, l:number):vec3 {
 
 // }
 export async function main(canvas: HTMLCanvasElement ){
-  
+    const countries = (await (await fetch('./assets/js/country_shapes.json')).json()) as CountryShape[];
     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
     var mapMaterial = await ImageTexture.create(device, "assets/img/map.png");
     var mapMaterialDark = await ImageTexture.create(device, "assets/img/map-dark.png");
@@ -65,7 +63,7 @@ export async function main(canvas: HTMLCanvasElement ){
     var scene: MapScene;
     var mapState = new State();
     const renderer = new Renderer(canvas, device, (globalBuffer: GPUBuffer): scene => {
-        scene = new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark, mapState);
+        scene = new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark, countries, mapState);
         return scene;
     });
 

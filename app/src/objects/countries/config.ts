@@ -1,14 +1,14 @@
 import { CountryTexture } from "./texture";
-import { TestMesh } from "./mesh";
-import test from "./shaders/test.wgsl";
+import { CountriesMesh } from "./mesh";
+import countries from "./shaders/countries.wgsl";
 
 
 export class shaderConfig{
     device: GPUDevice
 
-    shader = test
+    shader = countries
     bindGroups = [] as GPUBindGroup[]
-    mesh: TestMesh = new TestMesh();
+    mesh: CountriesMesh = new CountriesMesh();
 
 
     bindGroupLayout: GPUBindGroupLayout
@@ -64,7 +64,7 @@ export class shaderConfig{
         return this.device.createRenderPipeline({
             vertex : {
                 module : this.device.createShaderModule({
-                    code : test
+                    code : this.shader
                 }),
                 entryPoint : "vs_main",
                 buffers: [
@@ -74,7 +74,7 @@ export class shaderConfig{
     
             fragment : {
                 module : this.device.createShaderModule({
-                    code : test
+                    code : this.shader
                 }),
                 entryPoint : "fs_main",
                 targets : [{
@@ -140,4 +140,7 @@ export class shaderConfig{
     }
 
 
+    getVerticeNo(): number{
+        return this.mesh.verticeNo
+    }
 }
