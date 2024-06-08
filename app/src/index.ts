@@ -4,6 +4,7 @@ import { Renderer } from "./renderer";
 import { MapScene, State } from "./map/map";
 import { scene } from "./scene";
 import { CountryShape } from "./countries/country_shapes";
+import { FeatureCollection } from "./countries/geojson";
 
 
 
@@ -55,7 +56,7 @@ function hslToRgb(h:number, s:number, l:number):vec3 {
 
 // }
 export async function main(canvas: HTMLCanvasElement ){
-    const countries = (await (await fetch('./assets/js/country_shapes.json')).json()) as CountryShape[];
+    const countries = (await (await fetch('./assets/js/countries.json')).json()) as FeatureCollection;
     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
     var mapMaterial = await ImageTexture.create(device, "assets/img/map.png");
     var mapMaterialDark = await ImageTexture.create(device, "assets/img/map-dark.png");
@@ -114,17 +115,25 @@ export async function main(canvas: HTMLCanvasElement ){
 
     setInterval(() => {
         for(let i = 0; i < 1; i++){
+            // let start:vec2 = [
+            //     (Math.random()*360)-180,
+            //     (Math.random()*180)-90,
+            // ];
+            // let end:vec2 = [
+            //     (Math.random()*360)-180,
+            //     (Math.random()*180)-90,
+            // ];
             let start:vec2 = [
-                (Math.random()*360)-180,
-                (Math.random()*180)-90,
+                8.631334,
+                57.103187,
             ];
             let end:vec2 = [
-                (Math.random()*360)-180,
-                (Math.random()*180)-90,
+                1.428307,
+                51.364564,
             ];
             scene.doStream(start, end, hslToRgb(Math.random(), 1, 0.5));
         }
-    }, 1)
+    }, 1500)
 
 
 }

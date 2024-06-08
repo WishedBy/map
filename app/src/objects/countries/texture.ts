@@ -1,5 +1,6 @@
 import { vec2 } from "gl-matrix"
 import { MultiPolygonGeometry, PolygonGeometry } from "../../countries/country_shapes"
+import { Geometry, Position } from "../../countries/geojson"
 
 type countryData = {
     shapes: MultiPolygonGeometry|PolygonGeometry,
@@ -14,8 +15,8 @@ export class CountryTexture {
     sampler?: GPUSampler
     buffer: number[][] = []
 
-    // dim = {width: 2048, height: 1024}
-    dim = {width: 500, height: 500}
+    dim = {width: 2048, height: 1024}
+    // dim = {width: 500, height: 500}
 
     written = false
 
@@ -24,16 +25,16 @@ export class CountryTexture {
     }
 
 
-    addCountryShapeAsLayer(data: countryData): number {
+    addCountryShapeAsLayer(data: Geometry): number {
         if(this.written){
             throw new Error('Can only be modified before being written');
         }
 
-        let coords: vec2[][][]
-        if(data.shapes.type == "MultiPolygon"){
-            coords = data.shapes.coordinates
-        }else if(data.shapes.type == "Polygon"){
-            coords = [data.shapes.coordinates]
+        let coords: Position[][][]
+        if(data.type == "MultiPolygon"){
+            coords = data.coordinates
+        }else if(data.type == "Polygon"){
+            coords = [data.coordinates]
         }else{
             throw new Error('Unknown shapes type');
         }
@@ -43,34 +44,6 @@ export class CountryTexture {
         let minLat = -90;
         let maxLat = 90;
 
-        // temp for larger view
-        maxLon = Number.MIN_VALUE;
-        maxLat = Number.MIN_VALUE;
-        minLon = Number.MAX_VALUE;
-        minLat = Number.MAX_VALUE;
-        
-
-        coords.forEach(shape => {
-            shape.forEach(poly => {
-                poly.forEach(point => {
-                    if(point[0] < minLon!){
-                        minLon = point[0]
-                    }
-                    if(point[0] > maxLon!){
-                        maxLon = point[0]
-                    }
-                    if(point[1] < minLat!){
-                        minLat = point[1]
-                    }
-                    if(point[1] > maxLat!){
-                        maxLat = point[1]
-                    }
-                });
-            });
-        });
-        console.log({minLon, maxLon, minLat, maxLat})
-        // end temp for larger view
-        
 
         let layer = new Array(this.dim.width*this.dim.height).fill(0);
 
@@ -80,75 +53,58 @@ export class CountryTexture {
         let latRat = (this.dim.height)/(maxLat!-minLat!)
         let LatOff = -minLat!
 
-        const drawLine = (p1: vec2, p2: vec2) => {
-            let p = p1
-            const dx = Math.abs(p2[0] - p1[0]);
-            const dy = Math.abs(p2[1] - p1[1]);
-            const sx = Math.sign(p2[0] - p1[0]);
-            const sy = Math.sign(p2[1] - p1[1]);
-            let err = dx - dy;
-            
-            while (true) {
-                layer[p[1]*this.dim.width+p[0]] = 255
-            
-                if (p[0] === p2[0] && p[1] === p2[1]) break;
-            
-                const e2 = 2 * err;
-                if (e2 > -dy) { err -= dy; p[0] += sx; }
-                if (e2 <  dx) { err += dx; p[1] += sy; }
-            }
-    }
 
-        coords.forEach(shape => {
-            shape.forEach(poly => {
-                poly.forEach((point, i) => {
-                    let point2: vec2
-                    if(i < poly.length-1){
-                        point2 = poly[i+1];
-                    }else{
-                        point2 = poly[0];
-                    }
-                    let p1: vec2 = [
-                        Math.floor(lonRat * (point[0] + LonOff)),
-                        this.dim.height - Math.floor(latRat * (point[1] + LatOff))
-                    ];
-                    let p2: vec2 = [
-                        Math.floor(lonRat * (point2[0] + LonOff)),
-                        this.dim.height - Math.floor(latRat * (point2[1] + LatOff))
-                    ];
-                    drawLine(p1, p2)
+        for(let y = 0; y < this.dim.height; y++){
+            let xpos: number[] = []
+            coords.forEach(shape => {
+                shape.forEach(poly => {
+                    poly.forEach((point, i) => {
+                        let point2: Position
+                        if(i < poly.length-1){
+                            point2 = poly[i+1];
+                        }else{
+                            point2 = poly[0];
+                        }
+                        let p1: Position = [
+                            (lonRat * (point[0] + LonOff)),
+                            this.dim.height - (latRat * (point[1] + LatOff))
+                        ];
+                        let p2: Position = [
+                            (lonRat * (point2[0] + LonOff)),
+                            this.dim.height - (latRat * (point2[1] + LatOff))
+                        ];
+                        if(p1[0] > this.dim.width-1){
+                            p1[0] = this.dim.width-1
+                        }
+                        if(p2[0] > this.dim.width-1){
+                            p2[0] = this.dim.width-1
+                        }
+                        if(p1[1] > this.dim.height-1){
+                            p1[1] = this.dim.height-1
+                        }
+                        if(p2[1] > this.dim.height-1){
+                            p2[1] = this.dim.height-1
+                        }
+                        if (p1[1] < y && p2[1] >= y || p2[1] < y && p1[1] >= y) {
+                            xpos.push(Math.round(p1[0]+(y-p1[1])/(p2[1]-p1[1]) *(p2[0]-p1[0])))
+                        }
+                        
+                    });
+
                 });
-
-                // drawing pixels per line wont work, attempting a flood fill might
-                // if it will i should either record a position for each polygon at this point, or i should just perform the floodfill here
-            });
-        });
-
-        for(let line = 0; line < this.dim.height; line++){
-            for(let x = 0; x < this.dim.width-1; x++){
-                let linePos = line*this.dim.width;
-                let aPos = linePos+x;
-                let bPos = 0;
-                if(layer[aPos] != 0 && layer[aPos+1] == 0){
-                    // console.log([line, x, layer[aPos]])
-                    let x1 = x;
-                    let x2 = -1;
-                    x++;
-                    for(; x < this.dim.width; x++){
-                        bPos = linePos+x;
-                        if(layer[bPos] != 0){
-                            x2 = x;
-                            break;
-                        }
-                    }
-                    if(x2 > -1){
-                        for(let i = x1; i <= x2; i++){
-                            layer[linePos+i] = 255;
-                        }
-                    }
+            });  
+            xpos.sort(function(a, b) {
+                return a - b;
+            })
+            let linePos = y*this.dim.width;
+            for(let i = 0; i < xpos.length-1; i+=2){
+                for (let x=xpos[i]; x<xpos[i+1]; x++) {
+                    layer[linePos+x] = 255;
                 }
-            } 
+
+            }
         }
+
 
         this.buffer.push(layer);
 
@@ -184,10 +140,10 @@ export class CountryTexture {
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: "repeat",
             addressModeV: "repeat",
-            magFilter: "linear",
+            magFilter: "nearest",
             minFilter: "linear",
             mipmapFilter: "linear",
-            maxAnisotropy: 16
+            maxAnisotropy: 1
         };
         
         

@@ -13,6 +13,7 @@ import { StreamModel } from "../objects/stream/model";
 import { CountryModel } from "../objects/countries/model";
 import { CountryTexture } from "../objects/countries/texture";
 import { CountryShape, MultiPolygonGeometry, shapes } from "../countries/country_shapes";
+import { FeatureCollection } from "../countries/geojson";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -56,7 +57,7 @@ export class MapScene implements scene {
     mainMapPosition: vec3 = [0,0,0];
 
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, countries: CountryShape[], state: State) {
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, countries: FeatureCollection, state: State) {
         this.device = device
         this.state = state
         this.mapOpts = {
@@ -68,24 +69,30 @@ export class MapScene implements scene {
 
 
         let t = new CountryTexture(device)
-        let country = countries.find((shape) => {
-            return shape.iso2 === 'NL';
+        // let country = countries.find((shape) => {
+        //     return shape.iso2 === 'DE';
+        // });
+        // t.addCountryShapeAsLayer({
+        //     shapes: country!.geo_shape.geometry,
+        //     fillStart: [country!.geo_point_2d.lon, country!.geo_point_2d.lat]
+        // })
+        countries.features.forEach((f) => {
+            if(f.properties?.ISO_A2 == "DE"){
+                t.addCountryShapeAsLayer(f.geometry)
+            }
         });
-        t.addCountryShapeAsLayer({
-            shapes: country!.geo_shape.geometry,
-            fillStart: [country!.geo_point_2d.lon, country!.geo_point_2d.lat]
-        })
+        t.addCountryShapeAsLayer({type: "Polygon", coordinates: [[[-180, 90], [180, 90]]]})
         this.countryOpts = {
             countryConfig: new countryConfig(device, globalBuffer, t)
         };
 
 
         this.observer = new Camera(
-            [-5, 0, 0], [0, 0, 0], [0, 0, -1]
+            [-0.5, 0, -1], [0, 0, -1], [0, 0, -1]
         );
         this.map = new MapModel(this.mainMapPosition)
 
-        this.countries = new CountryModel([-0.001,0,0])
+        this.countries = new CountryModel(this.mainMapPosition)
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
             this.sphereStepper.play();
