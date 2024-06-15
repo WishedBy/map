@@ -10,6 +10,7 @@ export type RenderGroup = {
     objects: RenderObject[]
     vertexBuffer: GPUBuffer
     pipeline: GPURenderPipeline
+    pickPipeline: GPURenderPipeline|null
     getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup
 }
 

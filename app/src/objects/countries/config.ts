@@ -107,6 +107,42 @@ export class shaderConfig{
             depthStencil: dss,
         });
     }
+    getPickPipeline(dss: GPUDepthStencilState, sampleCount: number): GPURenderPipeline {
+        
+        return this.device.createRenderPipeline({
+            vertex : {
+                module : this.device.createShaderModule({
+                    code : this.shader
+                }),
+                entryPoint : "vs_main",
+                buffers: [
+                    this.mesh.bufferLayout
+                ]
+            },
+    
+            fragment : {
+                module : this.device.createShaderModule({
+                    code : this.shader
+                }),
+                entryPoint : "pick",
+                targets : [{
+                    format : "rgba32float" as GPUTextureFormat,
+                }]
+            },
+            multisample: {
+                count: sampleCount,
+            },
+            primitive : {
+                topology : "triangle-list",
+                cullMode: 'none',
+            },
+    
+            layout: this.device.createPipelineLayout({
+                bindGroupLayouts: [this.bindGroupLayout]
+            }),
+            depthStencil: dss,
+        });
+    }
 
 
     getBindGroup(subModelBuffer: GPUBuffer): GPUBindGroup{

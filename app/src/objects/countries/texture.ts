@@ -140,10 +140,10 @@ export class CountryTexture {
         const samplerDescriptor: GPUSamplerDescriptor = {
             addressModeU: "repeat",
             addressModeV: "repeat",
-            magFilter: "nearest",
+            magFilter: "linear",
             minFilter: "linear",
             mipmapFilter: "linear",
-            maxAnisotropy: 1
+            maxAnisotropy: 16
         };
         
         

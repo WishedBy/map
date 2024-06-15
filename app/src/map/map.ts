@@ -88,7 +88,7 @@ export class MapScene implements scene {
 
 
         this.observer = new Camera(
-            [-0.5, 0, -1], [0, 0, -1], [0, 0, -1]
+            [-4, 0, 0], [0, 0, 0], [0, 0, -1]
         );
         this.map = new MapModel(this.mainMapPosition)
 
@@ -219,6 +219,7 @@ export class MapScene implements scene {
     
             let mapGroup: RenderGroup = {
                 objects: objects,
+                pickPipeline: null,
                 pipeline: this.mapOpts.mapConfig.getPipeline(dss, sampleCount),
                 getBindGroup: (subModelBuffer: GPUBuffer) => this.mapOpts.mapConfig.getBindGroup(subModelBuffer),
                 vertexBuffer: this.getVertexBuffer(mapv, "map"),
@@ -235,13 +236,14 @@ export class MapScene implements scene {
                 vertexOffset: 0,
             }
             dataCountries.push(o)
-            let testGroup: RenderGroup = {
+            let countryGroup: RenderGroup = {
                 objects: dataCountries,
                 pipeline: this.countryOpts.countryConfig.getPipeline(dss, sampleCount),
+                pickPipeline: this.countryOpts.countryConfig.getPickPipeline(dss, sampleCount),
                 getBindGroup: (subModelBuffer: GPUBuffer) => this.countryOpts.countryConfig.getBindGroup(subModelBuffer),
                 vertexBuffer: this.getVertexBuffer(verticesCountries, "countries", true),
             }
-            res.groups.push(testGroup)
+            res.groups.push(countryGroup)
         })();
         
         (() => {
@@ -260,6 +262,7 @@ export class MapScene implements scene {
             let streamsGroup: RenderGroup = {
                 objects: dataStreams,
                 pipeline: this.streamOpts.streamConfig.getPipeline(dss, sampleCount),
+                pickPipeline: null,
                 getBindGroup: (subModelBuffer: GPUBuffer) => this.streamOpts.streamConfig.getBindGroup(subModelBuffer),
                 vertexBuffer: this.getVertexBuffer(vertices, "streams", true),
             }

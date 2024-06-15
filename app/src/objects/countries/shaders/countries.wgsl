@@ -84,7 +84,11 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32>{
     let a = textureSample(testTexture, testSampler, frag.TexCoord, 0);
+    return vec4<f32>(frag.Color, a[0]*255);
+}
 
-    
-    return vec4<f32>(frag.Color, a[0]);
+@fragment
+fn pick(frag: Fragment) -> @location(0) vec4<f32>{
+    let a = textureSample(testTexture, testSampler, frag.TexCoord, 0);
+    return vec4<f32>((a[0]), (frag.TexCoord[0]), (frag.TexCoord[1]), 0.0);
 }
