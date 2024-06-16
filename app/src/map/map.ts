@@ -14,6 +14,7 @@ import { CountryModel } from "../objects/countries/model";
 import { CountryTexture } from "../objects/countries/texture";
 import { CountryShape, MultiPolygonGeometry, shapes } from "../countries/country_shapes";
 import { FeatureCollection } from "../countries/geojson";
+import { picker } from "../renderer";
 
 type mapOpts = {
     mapConfig: MapShaderConfig
@@ -32,6 +33,7 @@ export class State {
     mousePosCurrent: vec2 = [0,0]
     mousePosLast: vec2 = [0,0]
 }
+
 
 export class MapScene implements scene {
     device: GPUDevice
@@ -56,10 +58,15 @@ export class MapScene implements scene {
 
     mainMapPosition: vec3 = [0,0,0];
 
+    picker: picker
 
-    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, countries: FeatureCollection, state: State) {
+    objectIdCounter = 0;
+
+
+    constructor(device: GPUDevice, globalBuffer: GPUBuffer, mapMaterial: ImageTexture, mapMaterialDark: ImageTexture, countries: FeatureCollection, state: State, picker: picker) {
         this.device = device
         this.state = state
+        this.picker = picker
         this.mapOpts = {
             mapConfig: new MapShaderConfig(device, globalBuffer, mapMaterial, mapMaterialDark)
         };
@@ -69,19 +76,6 @@ export class MapScene implements scene {
 
 
         let t = new CountryTexture(device)
-        // let country = countries.find((shape) => {
-        //     return shape.iso2 === 'DE';
-        // });
-        // t.addCountryShapeAsLayer({
-        //     shapes: country!.geo_shape.geometry,
-        //     fillStart: [country!.geo_point_2d.lon, country!.geo_point_2d.lat]
-        // })
-        countries.features.forEach((f) => {
-            if(f.properties?.ISO_A2 == "DE"){
-                t.addCountryShapeAsLayer(f.geometry)
-            }
-        });
-        t.addCountryShapeAsLayer({type: "Polygon", coordinates: [[[-180, 90], [180, 90]]]})
         this.countryOpts = {
             countryConfig: new countryConfig(device, globalBuffer, t)
         };
@@ -93,12 +87,24 @@ export class MapScene implements scene {
         this.map = new MapModel(this.mainMapPosition)
 
         this.countries = new CountryModel(this.mainMapPosition)
+        countries.features.forEach((f) => {
+            
+            if(f.properties?.ISO_A2 == "DE"){
+                const countryID = this.newID()
+                t.addCountryShapeAsLayer(countryID, f.geometry)
+            }
+        });
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {
             this.sphereStepper.play();
         });
         
 
+    }
+
+    newID(): number{
+        this.objectIdCounter++
+        return this.objectIdCounter
     }
 
     doStream(start: vec2, end: vec2, color: vec3) {

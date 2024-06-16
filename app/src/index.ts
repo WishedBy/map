@@ -1,6 +1,6 @@
 import { vec2, vec3 } from "gl-matrix";
 import { ImageTexture } from "./objects/ImageTexture";
-import { Renderer } from "./renderer";
+import { Renderer, picker } from "./renderer";
 import { MapScene, State } from "./map/map";
 import { scene } from "./scene";
 import { CountryShape } from "./countries/country_shapes";
@@ -47,14 +47,9 @@ function hslToRgb(h:number, s:number, l:number):vec3 {
     }
   
     return [ r, g, b ];
-  }
+}
 
-// export async function testCanvas(canvas: HTMLCanvasElement ){
-//     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
 
-//     var texture = new Texture(canvas, device);
-
-// }
 export async function main(canvas: HTMLCanvasElement ){
     const countries = (await (await fetch('./assets/js/countries.json')).json()) as FeatureCollection;
     var device = <GPUDevice> await (await navigator.gpu?.requestAdapter())?.requestDevice();
@@ -63,8 +58,8 @@ export async function main(canvas: HTMLCanvasElement ){
 
     var scene: MapScene;
     var mapState = new State();
-    const renderer = new Renderer(canvas, device, (globalBuffer: GPUBuffer): scene => {
-        scene = new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark, countries, mapState);
+    const renderer = new Renderer(canvas, device, (globalBuffer: GPUBuffer, p: picker): scene => {
+        scene = new MapScene(device, globalBuffer, mapMaterial, mapMaterialDark, countries, mapState, p);
         return scene;
     });
 
@@ -86,32 +81,6 @@ export async function main(canvas: HTMLCanvasElement ){
     await renderer.Initialize();
     renderer.run();
 
-    // let country = nl;
-    // // i think instead of this, these shapes should be drawn to a texture
-    // if(country.geo_shape.geometry.type == "MultiPolygon"){
-    //     country.geo_shape.geometry.coordinates.forEach((list) => {
-    //         (list as number[][][]).forEach((shape) => {
-    //             let start: number[] = shape[0];
-    //             let last: number[] = shape[0];
-    //             for(let i = 1; i < shape.length; i++){
-    //                 scene.addLine(last as vec2, shape[i] as vec2, [1, 1, 0]);
-    //                 last = shape[i];
-    //             }
-    //             scene.addLine(last as vec2, start  as vec2, [1, 1, 0]);
-    //         })
-    //     })
-    // }
-    // else if(country.geo_shape.geometry.type == "Polygon"){
-    //     (country.geo_shape.geometry.coordinates as number[][][]).forEach((shape) => {
-    //         let start: number[] = shape[0];
-    //         let last: number[] = shape[0];
-    //         for(let i = 1; i < shape.length; i++){
-    //             scene.addLine(last as vec2, shape[i] as vec2, [1, 1, 0]);
-    //             last = shape[i];
-    //         }
-    //         scene.addLine(last as vec2, start  as vec2, [1, 1, 0]);
-    //     })
-    // }
 
     setInterval(() => {
         for(let i = 0; i < 1; i++){

@@ -42,14 +42,9 @@ export class shaderConfig{
                 {
                     binding: 2,
                     visibility: GPUShaderStage.FRAGMENT,
-                    texture: {
-                        viewDimension: "2d-array" as GPUTextureViewDimension,
+                    buffer: {
+                        type: "read-only-storage" as GPUBufferBindingType
                     }
-                },
-                {
-                    binding: 3,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
                 },
             ]
 
@@ -165,11 +160,9 @@ export class shaderConfig{
                 },
                 {
                     binding: 2,
-                    resource: this.texture.getView()
-                },
-                {
-                    binding: 3,
-                    resource: this.texture.getSampler()
+                    resource: {
+                        buffer: this.texture.getAsBuffer()
+                    }
                 },
             ]
         });

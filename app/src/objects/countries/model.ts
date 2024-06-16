@@ -1,5 +1,11 @@
 import { mat2, mat4, vec2, vec3 } from "gl-matrix";
+import { Stepper } from "../../stepper";
 
+
+export type countryState = {
+    id: number
+    stepper: Stepper|null
+}
 
 export class CountryModel {
 

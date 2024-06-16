@@ -2,7 +2,7 @@
 import { mat4, vec2, vec3, vec4 } from "gl-matrix";
 import $ from "jquery";
 import { scene } from "./scene";
-
+export type picker = (pos: vec2) => Promise<vec4|null>
 export class Renderer {
 
     canvas: HTMLCanvasElement;
@@ -31,14 +31,14 @@ export class Renderer {
 
     running = true;
 
-    currentPickTexSize= [0,0];
+    currentPickTexSize = [0,0];
 
     pickTexture: GPUTexture 
 
     mousePos:vec2  = [0,0]
     
 
-    constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer) => scene){
+    constructor(canvas: HTMLCanvasElement, device: GPUDevice, sceneBuilder: (b: GPUBuffer, picker: picker) => scene){
         this.canvas = canvas;
         this.device = device;
         this.globalBuffer = this.device.createBuffer({
@@ -51,7 +51,7 @@ export class Renderer {
         });
     
         
-        this.scene = sceneBuilder(this.globalBuffer);
+        this.scene = sceneBuilder(this.globalBuffer, this.pick);
         this.canvas.width = window.innerWidth
         this.canvas.height = window.innerHeight
 

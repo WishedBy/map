@@ -21,8 +21,8 @@ struct model {
 
 @binding(1) @group(0) var<storage, read> object: model;
 
-@binding(2) @group(0) var testTexture: texture_2d_array<f32>;
-@binding(3) @group(0) var testSampler: sampler;
+@binding(2) @group(0) var<storage, read> display: array<u32>;
+// @binding(3) @group(0) var testSampler: sampler;
 
 
 
@@ -81,14 +81,24 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     return output;
 }
 
+
+const w = 1000;
+const h = 1000;
+
+
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32>{
-    let a = textureSample(testTexture, testSampler, frag.TexCoord, 0);
-    return vec4<f32>(frag.Color, a[0]*255);
+    // let a = textureSample(testTexture, testSampler, frag.TexCoord);
+    let x = u32(frag.TexCoord.x*w);
+    let y = u32(frag.TexCoord.y*h);
+    let a = display[(y*w)+x];
+    return vec4<f32>(frag.Color, f32(a)*255);
 }
 
 @fragment
 fn pick(frag: Fragment) -> @location(0) vec4<f32>{
-    let a = textureSample(testTexture, testSampler, frag.TexCoord, 0);
-    return vec4<f32>((a[0]), (frag.TexCoord[0]), (frag.TexCoord[1]), 0.0);
+    let x = u32(frag.TexCoord.x*w);
+    let y = u32(frag.TexCoord.y*h);
+    let a = display[(y*w)+x];
+    return vec4<f32>(f32(a), (frag.TexCoord[0]), (frag.TexCoord[1]), f32(x));
 }

@@ -2,10 +2,7 @@ import { vec2 } from "gl-matrix"
 import { MultiPolygonGeometry, PolygonGeometry } from "../../countries/country_shapes"
 import { Geometry, Position } from "../../countries/geojson"
 
-type countryData = {
-    shapes: MultiPolygonGeometry|PolygonGeometry,
-    fillStart: vec2
-}
+
 
 export class CountryTexture {
     
@@ -13,20 +10,23 @@ export class CountryTexture {
     texture?: GPUTexture
     view?: GPUTextureView
     sampler?: GPUSampler
-    buffer: number[][] = []
 
-    dim = {width: 2048, height: 1024}
-    // dim = {width: 500, height: 500}
+    dim = {width: 1000, height: 1000}
 
-    written = false
+    // account for 0 = unset, 255 items per layer
+    buffer: Uint32Array
+    gpuBuffer: GPUBuffer|null = null
+    count = 0
+
 
     constructor(device: GPUDevice) {
+        this.buffer = new Uint32Array(this.dim.width*this.dim.height).fill(0)
         this.device = device;
     }
 
 
-    addCountryShapeAsLayer(data: Geometry): number {
-        if(this.written){
+    addCountryShapeAsLayer(id:number, data: Geometry) {
+        if(this.gpuBuffer != null){
             throw new Error('Can only be modified before being written');
         }
 
@@ -39,23 +39,23 @@ export class CountryTexture {
             throw new Error('Unknown shapes type');
         }
 
-        let minLon = -180;
-        let maxLon = 180;
-        let minLat = -90;
-        let maxLat = 90;
+        const minLon = -180;
+        const maxLon = 180;
+        const minLat = -90;
+        const maxLat = 90;
 
-
-        let layer = new Array(this.dim.width*this.dim.height).fill(0);
-
-        let lonRat = (this.dim.width)/(maxLon!-minLon!)
-        let LonOff = -minLon!
+        this.count++;
         
-        let latRat = (this.dim.height)/(maxLat!-minLat!)
-        let LatOff = -minLat!
+
+        const lonRat = (this.dim.width)/(maxLon!-minLon!)
+        const LonOff = -minLon!
+        
+        const latRat = (this.dim.height)/(maxLat!-minLat!)
+        const LatOff = -minLat!
 
 
         for(let y = 0; y < this.dim.height; y++){
-            let xpos: number[] = []
+            const xpos: number[] = []
             coords.forEach(shape => {
                 shape.forEach(poly => {
                     poly.forEach((point, i) => {
@@ -99,77 +99,33 @@ export class CountryTexture {
             let linePos = y*this.dim.width;
             for(let i = 0; i < xpos.length-1; i+=2){
                 for (let x=xpos[i]; x<xpos[i+1]; x++) {
-                    layer[linePos+x] = 255;
+                    if(x >= this.dim.width){
+                        x = this.dim.width-1
+                    }
+                    this.buffer.set([id], linePos+x)
                 }
 
             }
         }
 
-
-        this.buffer.push(layer);
-
-        return this.buffer.length-1
     }
 
 
-    write(){
-        if(this.written){
-           throw new Error('The texture should be written once');
-        }
-        this.written = true;
 
-        
-        const textureDescriptor: GPUTextureDescriptor = {
-            size: {
-                width: this.dim.width,
-                height: this.dim.height,
-                depthOrArrayLayers: this.buffer.length
-            },
-            format: "r8unorm",
-            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT
-        };
-        const viewDescriptor: GPUTextureViewDescriptor = {
-            format: "r8unorm",
-            dimension: "2d-array",
-            aspect: "all",
-            baseMipLevel: 0,
-            mipLevelCount: 1,
-            baseArrayLayer: 0,
-            arrayLayerCount: this.buffer.length
-        };
-        const samplerDescriptor: GPUSamplerDescriptor = {
-            addressModeU: "repeat",
-            addressModeV: "repeat",
-            magFilter: "linear",
-            minFilter: "linear",
-            mipmapFilter: "linear",
-            maxAnisotropy: 16
-        };
-        
-        
-        this.texture = this.device.createTexture(textureDescriptor);
-        this.view = this.texture.createView(viewDescriptor);
-        this.sampler = this.device.createSampler(samplerDescriptor);
-        
-        this.device.queue.writeTexture({texture: this.texture}, <ArrayBuffer> new Uint8Array(([] as number[]).concat(...this.buffer)), {
-            bytesPerRow: this.dim.width, 
-            rowsPerImage: this.dim.height,
-        }, textureDescriptor.size)
-
-        this.buffer = []; // clear buffer once written
-    }
-
-    getView(): GPUTextureView{
-        if(!this.written){
-            this.write()
+    getAsBuffer(): GPUBuffer{
+        if(this.gpuBuffer != null){
+            return this.gpuBuffer
         }
-        return this.view as GPUTextureView
-    }
-    getSampler(): GPUSampler{
-        if(!this.written){
-            this.write()
-        }
-        return this.sampler as GPUSampler
+        let b = this.device.createBuffer({
+            size: this.buffer.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+        this.device.queue.writeBuffer(b, 0, <ArrayBuffer>this.buffer);
+        b.unmap();
+        this.buffer = new Uint32Array(); 
+        this.gpuBuffer = b;
+
+        return b
     }
 
 }
