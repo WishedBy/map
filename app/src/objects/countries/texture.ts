@@ -11,7 +11,7 @@ export class CountryTexture {
     view?: GPUTextureView
     sampler?: GPUSampler
 
-    dim = {width: 1000, height: 1000}
+    dim = {width: 2048, height: 1024}
 
     // account for 0 = unset, 255 items per layer
     buffer: Uint32Array
