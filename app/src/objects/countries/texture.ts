@@ -117,10 +117,13 @@ export class CountryTexture {
             return this.gpuBuffer
         }
         let b = this.device.createBuffer({
-            size: this.buffer.byteLength,
+            size: this.buffer.byteLength+8,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         });
-        this.device.queue.writeBuffer(b, 0, <ArrayBuffer>this.buffer);
+        let dim = new Uint32Array(2)
+        dim.set([this.dim.width, this.dim.height], 0)
+        this.device.queue.writeBuffer(b, 0, <ArrayBuffer>dim);
+        this.device.queue.writeBuffer(b, 8, <ArrayBuffer>this.buffer);
         b.unmap();
         this.buffer = new Uint32Array(); 
         this.gpuBuffer = b;

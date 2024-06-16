@@ -87,12 +87,12 @@ export class MapScene implements scene {
         this.map = new MapModel(this.mainMapPosition)
 
         this.countries = new CountryModel(this.mainMapPosition)
-        countries.features.forEach((f) => {
-            
-            if(f.properties?.ISO_A2 == "DE"){
+        countries.features.forEach((f, i) => {
+            console.log("Mapping country shapes. "+(i+1)+" of "+countries.features.length);
+            // if(f.properties?.ISO_A2 == "DE"){
                 const countryID = this.newID()
                 t.addCountryShapeAsLayer(countryID, f.geometry)
-            }
+            // }
         });
 
         $(document).on("dblclick",(e: JQuery.DoubleClickEvent) => {

@@ -15,13 +15,18 @@ struct model {
     animationMod: f32,
 };
 
+struct displayInf {
+    w: i32,
+    h: i32,
+    data: array<u32>,
+}
 
 @binding(0) @group(0) var<uniform> transformer: TransformData;
 
 
 @binding(1) @group(0) var<storage, read> object: model;
 
-@binding(2) @group(0) var<storage, read> display: array<u32>;
+@binding(2) @group(0) var<storage, read> display: displayInf;
 // @binding(3) @group(0) var testSampler: sampler;
 
 
@@ -73,7 +78,8 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
     pos = transformer.projection * transformer.view * pos;
    
     output.Position = pos;
-    output.TexCoord = vertexTexCoord;
+    // output.TexCoord = vertexTexCoord;
+    output.TexCoord = vec2<f32>((vertexTexCoord.x*f32(display.w)), (vertexTexCoord.y*f32(display.h)));
     output.Color = vec3<f32>(0,1,0);
 
 
@@ -82,23 +88,20 @@ fn vs_main( @location(0) vertexPostion: vec2<f32>,  @location(1) vertexPostionSp
 }
 
 
-const w = 1000;
-const h = 1000;
 
 
 @fragment
 fn fs_main(frag: Fragment) -> @location(0) vec4<f32>{
-    // let a = textureSample(testTexture, testSampler, frag.TexCoord);
-    let x = u32(frag.TexCoord.x*w);
-    let y = u32(frag.TexCoord.y*h);
-    let a = display[(y*w)+x];
+    let x = u32(frag.TexCoord.x);
+    let y = u32(frag.TexCoord.y);
+    let a = display.data[(y*u32(display.w))+x];
     return vec4<f32>(frag.Color, f32(a)*255);
 }
 
 @fragment
 fn pick(frag: Fragment) -> @location(0) vec4<f32>{
-    let x = u32(frag.TexCoord.x*w);
-    let y = u32(frag.TexCoord.y*h);
-    let a = display[(y*w)+x];
-    return vec4<f32>(f32(a), (frag.TexCoord[0]), (frag.TexCoord[1]), f32(x));
+    let x = u32(frag.TexCoord.x);
+    let y = u32(frag.TexCoord.y);
+    let a = display.data[(y*u32(display.w))+x];
+    return vec4<f32>(f32(a), (frag.TexCoord[0]), (frag.TexCoord[1]), 0.0);
 }
